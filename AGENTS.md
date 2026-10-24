@@ -1,6 +1,6 @@
 # Development guidance
 
-Read README.md, CONTRIBUTING.md, and SECURITY.md before changes. Use the stop-slop writing guidance for project prose: direct language, specific claims, active voice, and no filler. Preserve verbatim license texts and third-party notices.
+Read HANDOFF.md, README.md, CONTRIBUTING.md, and SECURITY.md before changes. If the owner supplies local/AGENT-ENVIRONMENT.md, read it for private test-environment details; keep that file out of Git. Use the stop-slop writing guidance for project prose: direct language, specific claims, active voice, and no filler. Preserve verbatim license texts and third-party notices.
 
 Keep main as the reviewed baseline. Use the experiment/kitty-borders branch and a separate worktree for border exploration. Do not deploy experiments into the working VM session. Test on the disposable Omarchy VM first; defer Ubuntu and physical-host changes until the owner asks.
 
