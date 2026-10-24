@@ -1,0 +1,109 @@
+#!/usr/bin/env python3
+"""Isolated tmux session for the eDEX terminal port; no user config installation."""
+import argparse
+import os
+from pathlib import Path
+import shutil
+import secrets
+import shlex
+import subprocess
+import sys
+
+ROOT=Path(__file__).resolve().parent
+SOCKET='edex-terminal-'+str(os.getuid() if hasattr(os,'getuid') else 'test')
+
+
+def tmux(*args):
+    return subprocess.run(['tmux','-L',SOCKET,'-f',str(ROOT/'tmux.conf'),*args],
+                          check=True,capture_output=True,text=True).stdout.strip()
+
+
+def toggle_keyboard():
+    session='edex'
+    shell=tmux('show-options','-v','-t',session,'@edex-shell')
+    files=tmux('show-options','-v','-t',session,'@edex-files')
+    token=tmux('show-options','-p','-v','-t',shell,'@edex-input-token')
+    panes=tmux('list-panes','-a','-F','#{pane_id} #{pane_title} #{window_name}')
+    keyboard=next((line.split() for line in panes.splitlines()
+                   if line.split()[1:2]==['Keyboard']),None)
+    if keyboard and keyboard[2]!='_keyboard':
+        tmux('break-pane','-d','-s',keyboard[0],'-n','_keyboard')
+        tmux('select-pane','-t',shell)
+    else:
+        if keyboard:pane=keyboard[0]
+        else:
+            pane=tmux('new-window','-d','-t',session,'-n','_keyboard','-P','-F','#{pane_id}',
+                      sys.executable,str(ROOT/'keyboard.py'),'--shell-pane',shell,'--token',token)
+            tmux('select-pane','-t',pane,'-T','Keyboard')
+        tmux('join-pane','-d','-s',pane,'-t',files,'-h','-l','56%')
+        tmux('select-pane','-t',shell)
+
+
+def main():
+    p=argparse.ArgumentParser(description=__doc__)
+    p.add_argument('--detach',action='store_true');p.add_argument('--stop',action='store_true')
+    p.add_argument('--toggle-keyboard',action='store_true',help='Show/hide the touch keyboard in the existing session')
+    p.add_argument('--install-switcher',action='store_true',help='Add the shell tab strip to the existing demo')
+    p.add_argument('--files',choices=['auto','yazi','superfile','preview'],default='auto')
+    p.add_argument('--skip-intro',action='store_true',help='Skip the upstream-derived theatrical startup sequence')
+    p.add_argument('--display-font',type=Path,help='Optional local font, e.g. a licensed United Sans Medium TTF/OTF')
+    p.add_argument('--light-font',type=Path,help='Optional matching local light-weight face')
+    p.add_argument('--cwd',default=os.getcwd());args=p.parse_args()
+    if not shutil.which('tmux'):p.error('Install tmux first')
+    if args.stop:
+        tmux('kill-session','-t','edex');return
+    if args.toggle_keyboard:
+        toggle_keyboard();return
+    if args.install_switcher:
+        from workspaces import install
+        install();return
+    if os.environ.get('TMUX'):p.error('Launch from Kitty outside tmux; this uses its own tmux server')
+    if not os.environ.get('KITTY_WINDOW_ID'):p.error('Launch in Kitty; tmux graphics support must be tested there')
+    for option,var in [(args.display_font,'EDEX_DISPLAY_FONT'),(args.light_font,'EDEX_LIGHT_FONT')]:
+        if option:
+            from PIL import ImageFont
+            try:ImageFont.truetype(str(option),16)
+            except OSError:p.error(f'Cannot read font: {option}; supply a supported TTF/OTF file')
+            os.environ[var]=str(option.resolve())
+    existing=subprocess.run(['tmux','-L',SOCKET,'has-session','-t','edex'],capture_output=True).returncode==0
+    if not existing:
+        cols,rows=shutil.get_terminal_size((180,55))
+        if cols<140 or rows<40:p.error('Prototype layout needs at least 140 columns by 40 rows')
+        if not args.skip_intro and not args.detach:
+            from boot import play
+            play()
+        shell=tmux('new-session','-d','-s','edex','-c',str(Path(args.cwd).resolve()),
+                   '-x',str(cols),'-y',str(rows),'-P','-F','#{pane_id}')
+        tmux('select-pane','-t',shell,'-T','Shell')
+        token=secrets.token_hex(24)
+        tmux('set-option','-p','-t',shell,'@edex-input-token',token)
+        tmux('set-option','-t','edex','@edex-shell',shell)
+        keyboard_cmd=shlex.join([sys.executable,str(ROOT/'launch.py'),'--toggle-keyboard'])
+        tmux('bind-key','K','run-shell',keyboard_cmd)
+        def instrument(kind,target,orientation,percentage,before=False):
+            cmd=['split-window','-d','-t',target,orientation,'-l',percentage,'-P','-F','#{pane_id}']
+            if before:cmd.append('-b')
+            cmd.extend([sys.executable,str(ROOT/'panel.py'),kind,'--shell-pane',shell])
+            pane=tmux(*cmd);tmux('select-pane','-t',pane,'-T',kind.capitalize());return pane
+        try:
+            # Upstream main_shell 65vw, side columns 17vw. Bottom row spans
+            # the full window; an optional keyboard shares it with files.
+            files=tmux('split-window','-d','-f','-v','-t',shell,'-l','30%',
+                       '-c',str(Path(args.cwd).resolve()),'-P','-F','#{pane_id}',
+                       sys.executable,str(ROOT/'navigator.py'),'--program',args.files,
+                       '--shell-pane',shell)
+            tmux('select-pane','-t',files,'-T','Files')
+            tmux('set-option','-t','edex','@edex-files',files)
+            instrument('system',shell,'-h','17%',True)
+            instrument('network-column',shell,'-h','20%')
+            from workspaces import install
+            install()
+            tmux('select-pane','-t',shell)
+        except Exception:
+            tmux('kill-session','-t','edex');raise
+    if args.detach:
+        print('Created isolated session. Attach: tmux -L '+SOCKET+' attach -t edex');return
+    os.execvp('tmux',['tmux','-L',SOCKET,'attach-session','-t','edex'])
+
+
+if __name__=='__main__':main()

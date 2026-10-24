@@ -1,0 +1,69 @@
+[[mgr.prepend_keymap]]
+on = "<Up>"
+run = "plugin edex-grid up"
+desc = "Move one grid row up"
+
+[[mgr.prepend_keymap]]
+on = "<Down>"
+run = "plugin edex-grid down"
+desc = "Move one grid row down"
+
+[[mgr.prepend_keymap]]
+on = "<Left>"
+run = "plugin edex-grid left"
+desc = "Previous card"
+
+[[mgr.prepend_keymap]]
+on = "<Right>"
+run = "plugin edex-grid right"
+desc = "Next card"
+
+[[mgr.prepend_keymap]]
+on = "k"
+run = "plugin edex-grid up"
+desc = "Move one grid row up"
+
+[[mgr.prepend_keymap]]
+on = "j"
+run = "plugin edex-grid down"
+desc = "Move one grid row down"
+
+[[mgr.prepend_keymap]]
+on = "<PageUp>"
+run = "plugin edex-grid pageup"
+desc = "Move one grid page up"
+
+[[mgr.prepend_keymap]]
+on = "<PageDown>"
+run = "plugin edex-grid pagedown"
+desc = "Move one grid page down"
+
+[[mgr.prepend_keymap]]
+on = "<Home>"
+run = "plugin edex-grid first"
+desc = "First file"
+
+[[mgr.prepend_keymap]]
+on = "<End>"
+run = "plugin edex-grid last"
+desc = "Last file"
+
+[[mgr.prepend_keymap]]
+on = "G"
+run = "plugin edex-grid last"
+desc = "Last file"
+
+[[mgr.prepend_keymap]]
+on = "<Enter>"
+run = "plugin edex-grid activate"
+desc = "Enter directory or open hovered file"
+
+[[mgr.prepend_keymap]]
+on = "<Backspace>"
+run = "leave"
+desc = "Go to parent directory"
+
+[[mgr.prepend_keymap]]
+on = ["g", "/"]
+run = "cd /"
+desc = "Go to filesystem root"

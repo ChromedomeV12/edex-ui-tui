@@ -1,0 +1,7 @@
+# Dedicated pane configuration, never installed into ~/.config/yazi.
+[mgr]
+ratio = [0, 1, 0]
+show_hidden = true
+
+# Native drag hit testing assumes list rows; do not apply it to icon cards.
+mouse_events = ["click", "scroll"]

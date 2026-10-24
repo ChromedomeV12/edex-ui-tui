@@ -1,0 +1,16 @@
+[mgr]
+cwd = { fg = "#aacfd1" }
+border_style = { fg = "#37585c" }
+[indicator]
+current = { bg = "#18343c", bold = true }
+preview = { bg = "#18343c" }
+[mode]
+normal_main = { fg = "#05080d", bg = "#aacfd1", bold = true }
+normal_alt = { fg = "#aacfd1", bg = "#18343c" }
+[status]
+overall = { fg = "#aacfd1", bg = "#05080d" }
+[filetype]
+rules = [
+  { url = "*/", fg = "#aacfd1", bold = true },
+  { url = "*", fg = "#aacfd1" },
+]

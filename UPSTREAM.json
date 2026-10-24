@@ -1,0 +1,172 @@
+{
+  "repository": "https://github.com/theelderemo/eDEX-UI-security-patched",
+  "commit": "d59e5e287d9ebde8920aaf638ae7e685115c3de4",
+  "license": "GPL-3.0",
+  "files": [
+    {
+      "upstream_path": "src/assets/misc/grid.json",
+      "local_path": "assets/grid.json",
+      "sha256": "18c21b809ed0b207ea24a209d7c2105ee6c4a1a7d8cb87bc9e47630558ce7c67"
+    },
+    {
+      "upstream_path": "src/assets/themes/tron.json",
+      "local_path": "references/tron.json",
+      "sha256": "56e5fe3e6f4029a7715271c476e09360a9089b298c7bb66b983e685f273e8362"
+    },
+    {
+      "upstream_path": "src/classes/locationGlobe.class.js",
+      "local_path": "references/locationGlobe.class.js",
+      "sha256": "b7637421bb65c9950e3185a02936e5712d7c6b8aa11e1fb404736727fcbf04e1"
+    },
+    {
+      "upstream_path": "src/classes/ramwatcher.class.js",
+      "local_path": "references/ramwatcher.class.js",
+      "sha256": "e7a76078c8133f23427b89572dbeef62469eaeb77807f30cac5d17d3c7cfc642"
+    },
+    {
+      "upstream_path": "src/classes/cpuinfo.class.js",
+      "local_path": "references/cpuinfo.class.js",
+      "sha256": "a56553895d966fee39d732776cc1050f1f7daccd68366c888bf1ed9ce386b75a"
+    },
+    {
+      "upstream_path": "src/classes/conninfo.class.js",
+      "local_path": "references/conninfo.class.js",
+      "sha256": "d796c54a2362e8aa26d2e4b1f957ca2891dc3258b8d413d0ed7d66e9c24eb2a9"
+    },
+    {
+      "upstream_path": "src/assets/kb_layouts/en-US.json",
+      "local_path": "assets/en-US.json",
+      "sha256": "fe51d401d971340138f408152265c2fe63ec19d6223265b6d5b8aa7d22655261"
+    },
+    {
+      "upstream_path": "src/assets/misc/boot_log.txt",
+      "local_path": "assets/boot_log.txt",
+      "sha256": "59962be2444ac9feafeae579975b46ba856ecb595d5680c113ed856bb91ea291"
+    },
+    {
+      "upstream_path": "src/_renderer.js",
+      "local_path": "references/_renderer.js",
+      "sha256": "4b8013d372b5421185ec871da1aa4e1bdaf5b6e852ad336dc52d8cddfa693856"
+    },
+    {
+      "upstream_path": "src/assets/css/boot_screen.css",
+      "local_path": "references/css/boot_screen.css",
+      "sha256": "d62c72555388e0fa16e1834c316fc29fe086b988895de01abfc48efd1866fe71"
+    },
+    {
+      "upstream_path": "src/assets/css/extra_ratios.css",
+      "local_path": "references/css/extra_ratios.css",
+      "sha256": "6333492a5d2436c7800934060b63698452de9fe6c2d8b3bb8b5bc15ddad85ff1"
+    },
+    {
+      "upstream_path": "src/assets/css/filesystem.css",
+      "local_path": "references/css/filesystem.css",
+      "sha256": "82e0f822fecbc2076494711a2bdc90f4f331cac189c46dc0f177df7d372b556d"
+    },
+    {
+      "upstream_path": "src/assets/css/keyboard.css",
+      "local_path": "references/css/keyboard.css",
+      "sha256": "082393a198afc958ac7b0385cfa168af8cfae0ad0a946f280c89dfb6ce18744b"
+    },
+    {
+      "upstream_path": "src/assets/css/main.css",
+      "local_path": "references/css/main.css",
+      "sha256": "a39d57429f57e4d861bbbbfa58ccac79ad45b4c17651074d4093c51436cccf49"
+    },
+    {
+      "upstream_path": "src/assets/css/main_shell.css",
+      "local_path": "references/css/main_shell.css",
+      "sha256": "79cc5aa15f3d7def1e5bd41b86a1bd3fac5987165ea05494ccc1c6c161c7eabd"
+    },
+    {
+      "upstream_path": "src/assets/css/media_player.css",
+      "local_path": "references/css/media_player.css",
+      "sha256": "d3136b535aa567610bda1b723b3e43d5ae406103076a1ac7dd5dfa8b27ab2f31"
+    },
+    {
+      "upstream_path": "src/assets/css/modal.css",
+      "local_path": "references/css/modal.css",
+      "sha256": "f69f711d10385e31e18b655bdd9f5203cedff6152b971e74787910c3bcd93394"
+    },
+    {
+      "upstream_path": "src/assets/css/mod_clock.css",
+      "local_path": "references/css/mod_clock.css",
+      "sha256": "cb72b78aaea9d4886c4c6ed7d8830c52c43684e2b0974e0c804b7efb7fcebf10"
+    },
+    {
+      "upstream_path": "src/assets/css/mod_column.css",
+      "local_path": "references/css/mod_column.css",
+      "sha256": "d1eae598a9e8018e2378f5d39717f6ad60d6449cfe62a7672d80aa3b0f142cc4"
+    },
+    {
+      "upstream_path": "src/assets/css/mod_conninfo.css",
+      "local_path": "references/css/mod_conninfo.css",
+      "sha256": "a1af2d1f9954bb443dff8c2f6b72ef1fbeecdd1617e50778ca0947f05cead12a"
+    },
+    {
+      "upstream_path": "src/assets/css/mod_cpuinfo.css",
+      "local_path": "references/css/mod_cpuinfo.css",
+      "sha256": "ee2a9e13c7f7e11338d321e694c795cdf8b66c516b0ed6b6a5620bfa70aa28d6"
+    },
+    {
+      "upstream_path": "src/assets/css/mod_fuzzyFinder.css",
+      "local_path": "references/css/mod_fuzzyFinder.css",
+      "sha256": "8acaaf5cbcb0eda42bef4dcacb9fd5cd8989eef85eb48b69aa75c162c10a607c"
+    },
+    {
+      "upstream_path": "src/assets/css/mod_globe.css",
+      "local_path": "references/css/mod_globe.css",
+      "sha256": "7c7c9c1a269902efa38de3662ee2b9b7eddb142cea76bb9b6125a97e61429c28"
+    },
+    {
+      "upstream_path": "src/assets/css/mod_hardwareInspector.css",
+      "local_path": "references/css/mod_hardwareInspector.css",
+      "sha256": "bbd5129be5190baccaafedcf69175a350587225de45e6fdbe3367526d2763603"
+    },
+    {
+      "upstream_path": "src/assets/css/mod_netstat.css",
+      "local_path": "references/css/mod_netstat.css",
+      "sha256": "389d56d4518784a0bf22d335e8eb63ae865dcaa2bc34ec0107b489f3a4956152"
+    },
+    {
+      "upstream_path": "src/assets/css/mod_processlist.css",
+      "local_path": "references/css/mod_processlist.css",
+      "sha256": "b89305f846f9faa8c1b45823d8e196b0c3450f7005ba595f383ec40429975215"
+    },
+    {
+      "upstream_path": "src/assets/css/mod_ramwatcher.css",
+      "local_path": "references/css/mod_ramwatcher.css",
+      "sha256": "6ce3510a90a876033e883126f1187bad8e59997cb1b52369bc6c1811a03db995"
+    },
+    {
+      "upstream_path": "src/assets/css/mod_sysinfo.css",
+      "local_path": "references/css/mod_sysinfo.css",
+      "sha256": "09fd1c5ad2de6e9a70bc6afe4871925b57c03ea2ee2ccbd917e0a3f492174830"
+    },
+    {
+      "upstream_path": "src/assets/css/mod_toplist.css",
+      "local_path": "references/css/mod_toplist.css",
+      "sha256": "531ac24db076800385306ff1d53ab7a72031e8608a105a48b76b2bc814920063"
+    },
+    {
+      "upstream_path": "src/assets/icons/file-icons.json",
+      "local_path": "assets/file-icons.json",
+      "sha256": "bf9bc40ee04b213d65a161b9f0baaa83f4f0c4cce9b3f7dab2d1e0b9b7d6ec5b",
+      "adaptation": "Selected icon entries retained unchanged from upstream map"
+    }
+  ],
+  "other_reference": "https://github.com/fenix-linux/eDEX-UI_Installer",
+  "derived_assets": [
+    {
+      "path": "assets/keyboard-geometry.json",
+      "source": "src/assets/css/keyboard.css plus en-US keymap; browser-measured at 1920x1080 with bundled OFL Rajdhani Medium, normal/Shift/Fn states",
+      "source_css_sha256": "082393a198afc958ac7b0385cfa168af8cfae0ad0a946f280c89dfb6ce18744b"
+    },
+    {
+      "path": "assets/keyboard-arrows.json",
+      "source": "src/classes/keyboard.class.js",
+      "adaptation": "Four original inline SVG arrow icons retained unchanged",
+      "source_sha256": "a5a940e2f2e05dbad3e90b50171d915770d8a580c029db20aa31f7cc75013d38"
+    }
+  ]
+}
