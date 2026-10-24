@@ -2,6 +2,10 @@
 
 An eDEX-UI reconstruction for Linux terminals, using Kitty graphics and tmux.
 
+![eDEX-UI TUI running in an Omarchy VM, with system and network instruments, shell tabs, Yazi, and the optional keyboard](docs/images/omarchy-preview.png)
+
+Omarchy VM preview with the optional keyboard open.
+
 I’m a TRON fan, and I remember how exciting eDEX-UI felt when it first appeared. After spending a few months with Omarchy, I wanted to bring that interface into the terminal. I built this prototype with AI assistance and existing tools, and I’m opening it up for feedback and collaboration. I’m a student with some programming experience; I’m still learning UI design.
 
 Each section occupies a tmux pane. You get native shells in the center, system and network instruments on the sides, and a Yazi file browser below. You can summon the keyboard when you need it and keep the space for files when you don’t.
