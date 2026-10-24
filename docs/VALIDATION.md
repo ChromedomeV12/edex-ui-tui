@@ -18,4 +18,4 @@ The Yazi integration test covers grid movement, paging, empty directories, paren
 
 We have not verified physical touchscreen input, iOS/Android SSH clients, Mosh graphics transport, complete boot choreography, audio, all upstream effects, or pixel-perfect equivalence. Physical typing does not trigger keyboard highlights. We use an open font approximation. Border experiments remain separate from main.
 
-We excluded old desktop captures and local capture manifests from this repository because they contain machine details or show earlier layouts. The README includes a keyboard renderer preview with no live system data.
+We excluded old capture collections and local manifests from this repository. The README includes an owner-supplied Omarchy VM screenshot and a keyboard renderer preview. The VM screenshot shows the interface before the repository extraction, so its file listing uses the earlier folder layout.
