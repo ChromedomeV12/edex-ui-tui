@@ -99,12 +99,18 @@ def main():
     p.add_argument('--fps',type=int,choices=(24,30,48,60),default=24,
                    help='Animation target for a new session; higher rates need local performance testing')
     p.add_argument('--graphics-transport',choices=['direct','tempfile'],
-                   default=os.environ.get('EDEX_GRAPHICS_TRANSPORT','direct'),
+                   default=None,
                    help='Use tempfile only when Kitty and this process share a filesystem; direct for SSH')
     p.add_argument('--display-font',type=Path,help='Optional local font, e.g. a licensed United Sans Medium TTF/OTF')
     p.add_argument('--light-font',type=Path,help='Optional matching local light-weight face')
     p.add_argument('--cwd',default=os.getcwd());args=p.parse_args()
-    os.environ['EDEX_GRAPHICS_TRANSPORT']=args.graphics_transport
+    controls=(args.stop,args.toggle_keyboard,args.install_switcher,args.install_shell_frame)
+    if args.graphics_transport is not None:
+        os.environ['EDEX_GRAPHICS_TRANSPORT']=args.graphics_transport
+    elif not any(controls):
+        os.environ.setdefault('EDEX_GRAPHICS_TRANSPORT','direct')
+    # An outside control without a transport choice must not reset the live
+    # server's tempfile mode to direct before spawning a keyboard worker.
     if not shutil.which('tmux'):p.error('Install tmux first')
     if args.stop:
         tmux('kill-session','-t','=edex');return

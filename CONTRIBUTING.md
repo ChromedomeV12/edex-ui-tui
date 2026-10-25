@@ -17,6 +17,7 @@ You can help with rendering, input, accessibility, performance, or Linux compati
 | references/ | Pinned upstream source for comparison; no runtime JavaScript |
 | tests/ | Unit, geometry, and isolated integration checks |
 | docs/ | User guides, measurements, and validation limits |
+| app.py, packaging/ | Local window entry point and Arch preview staging |
 
 We keep runtime modules at the root so the launcher and pane subprocesses share one import and asset path. Use Python 3.11 or newer, Pillow, tmux, Lua, Yazi, and librsvg for the full test suite. Follow the README for the reviewed versions.
 

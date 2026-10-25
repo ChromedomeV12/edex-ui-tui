@@ -1,0 +1,33 @@
+# Preview recipe: follows the experiment branch until the first reviewed release.
+pkgname=edex-ui-tui-git
+pkgver=0.r0.g0000000
+pkgrel=1
+pkgdesc='Terminal workspace with eDEX-derived instruments, tmux shells and an optional keyboard'
+arch=('any')
+url='https://github.com/ChromedomeV12/edex-ui-tui'
+license=('GPL-3.0-only' 'OFL-1.1' 'BSD-2-Clause')
+depends=('python>=3.11' 'python-pillow>=10.2' 'kitty>=0.32.2' 'tmux>=3.4' 'ttf-dejavu' 'procps-ng')
+makedepends=('git')
+optdepends=('yazi>=26.9.1: file navigation with the custom icon grid'
+            'librsvg: SVG file icons for Yazi')
+provides=('edex-ui-tui')
+conflicts=('edex-ui-tui')
+source=('edex-ui-tui::git+https://github.com/ChromedomeV12/edex-ui-tui.git#branch=experiment/kitty-borders')
+sha256sums=('SKIP')
+
+pkgver() {
+  cd "$srcdir/edex-ui-tui"
+  printf '0.r%s.g%s' "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
+
+check() {
+  cd "$srcdir/edex-ui-tui"
+  python tests/test_port.py
+  python tests/test_provenance.py
+  python tests/test_packaging.py
+}
+
+package() {
+  cd "$srcdir/edex-ui-tui"
+  python packaging/install.py --destdir "$pkgdir"
+}

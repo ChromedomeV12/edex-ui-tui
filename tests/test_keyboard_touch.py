@@ -59,8 +59,27 @@ class TouchPathTest(unittest.TestCase):
                             sys.executable,str(receiver),str(record))
                 tmux('set-option','-t','edex','@edex-shell',target)
                 tmux('set-option','-p','-t',target,'@edex-input-token','test-only-marker')
+                # Make the first raster exceed the reveal deadline. The worker
+                # must still submit a final visible frame after that slow frame.
+                final_frame=folder/'final-frame'
+                placements=folder/'placements'
+                code=('import sys,time;from pathlib import Path;sys.path.insert(0,sys.argv.pop(1));import keyboard\n'
+                      'original=keyboard.Keyboard.png\n'
+                      'def slow_first(self,*args,**kwargs):\n'
+                      ' if not getattr(self,"_slow_first_done",False):\n'
+                      '  self._slow_first_done=True;time.sleep(1.2)\n'
+                      ' result=original(self,*args,**kwargs)\n'
+                      f' if kwargs.get("reveal",0)>=1.05:Path({str(final_frame)!r}).write_text("rendered")\n'
+                      ' return result\n'
+                      'keyboard.Keyboard.png=slow_first\n'
+                      'place=keyboard.Image.place\n'
+                      'def observe_place(self,*args,**kwargs):\n'
+                      ' result=place(self,*args,**kwargs)\n'
+                      f' with open({str(placements)!r},"a") as out:out.write("R" if kwargs.get("repaint",True) else "M")\n'
+                      ' return result\n'
+                      'keyboard.Image.place=observe_place\nkeyboard.main()\n')
                 keyboard=tmux('split-window','-d','-v','-l','35%','-t',target,'-P','-F','#{pane_id}',
-                              sys.executable,str(ROOT/'keyboard.py'),'--shell-pane',target,'--token','test-only-marker')
+                              sys.executable,'-c',code,str(ROOT),'--shell-pane',target,'--token','test-only-marker')
                 client=subprocess.Popen(['tmux','-L',label,'attach','-t','edex'],stdin=slave,stdout=slave,stderr=slave,
                                         env=dict(os.environ,TERM='xterm-kitty',LANG='C.UTF-8'))
                 def drain():
@@ -69,7 +88,26 @@ class TouchPathTest(unittest.TestCase):
                             try:os.read(master,65536)
                             except OSError:return
                 drainer=threading.Thread(target=drain,daemon=True);drainer.start()
-                time.sleep(1.5)
+                # The initial join gets one delayed repair. Idle heartbeats
+                # must not repaint cell placeholders; a layout revision must.
+                def events():return placements.read_text() if placements.exists() else ''
+                deadline=time.monotonic()+12;last_paint=time.monotonic();paints=0
+                while time.monotonic()<deadline:
+                    count=events().count('R')
+                    if count!=paints:paints=count;last_paint=time.monotonic()
+                    if paints>=2 and final_frame.exists() and time.monotonic()-last_paint>=2.2:break
+                    time.sleep(.05)
+                self.assertGreaterEqual(paints,2)
+                self.assertTrue(final_frame.exists(),'Keyboard never rendered the final reveal frame')
+                self.assertGreaterEqual(time.monotonic()-last_paint,2.2)
+                metadata=events().count('M')
+                time.sleep(2.2)
+                self.assertEqual(events().count('R'),paints)
+                self.assertGreater(events().count('M'),metadata)
+                tmux('set-option','-t','edex','@edex-layout-revision','touch-test-reflow')
+                deadline=time.monotonic()+2
+                while events().count('R')==paints and time.monotonic()<deadline:time.sleep(.05)
+                self.assertGreater(events().count('R'),paints)
                 cols,rows,cw,ch,left,top=map(int,tmux('display-message','-p','-t',keyboard,
                     '#{pane_width},#{pane_height},#{client_cell_width},#{client_cell_height},#{pane_left},#{pane_top}').split(','))
                 cw=cw or 8;ch=ch or 16;width=(cols-1)*cw;height=(rows-1)*ch

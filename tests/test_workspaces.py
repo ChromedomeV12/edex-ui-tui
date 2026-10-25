@@ -104,7 +104,7 @@ class WorkspacesTest(unittest.TestCase):
 
 def outside_env(**overrides):
     env={key:value for key,value in os.environ.items()
-         if key not in ('TMUX','TMUX_PANE','EDEX_TMUX_SOCKET')}
+         if key not in ('TMUX','TMUX_PANE','EDEX_TMUX_SOCKET','EDEX_GRAPHICS_TRANSPORT')}
     env['KITTY_WINDOW_ID']='1'
     env['COLUMNS']='180'
     env['LINES']='55'
@@ -298,6 +298,7 @@ class LauncherSocketIsolationTest(TwoServerFixture,unittest.TestCase):
     def test_outside_toggle_keyboard_selects_named_server(self):
         binary,s1,s2=self.binary,self.sockets[0],self.sockets[1]
         panes2_before=alive_panes(binary,s2)
+        tmux_client(binary,s1,'set-environment','-t','edex','EDEX_GRAPHICS_TRANSPORT','tempfile')
         def keyboard_windows(socket):
             lines=[line.split() for line in
                    tmux_client(binary,socket,'list-panes','-a','-F','#{pane_id} #{pane_title} #{window_name}').stdout.splitlines()]
@@ -306,6 +307,12 @@ class LauncherSocketIsolationTest(TwoServerFixture,unittest.TestCase):
         result=run_cli(binary,'launch.py','--toggle-keyboard',socket=s1,lock_dir=self.lock_dir)
         self.assertEqual(result.returncode,0,result.stderr)
         self.assertTrue(wait_for(lambda:keyboard_windows(s1) and keyboard_windows(s1)!=['_keyboard']))
+        self.assertEqual(tmux_client(binary,s1,'show-environment','-t','edex','EDEX_GRAPHICS_TRANSPORT').stdout.strip(),
+                         'EDEX_GRAPHICS_TRANSPORT=tempfile')
+        keyboard=next(line.split()[0] for line in tmux_client(binary,s1,'list-panes','-a','-F',
+                      '#{pane_id} #{pane_title}').stdout.splitlines() if line.split()[1:]==['Keyboard'])
+        self.assertIn(b'EDEX_GRAPHICS_TRANSPORT=tempfile',
+                      child_env(int(pane_value(binary,s1,keyboard,'#{pane_pid}'))).split(b'\0'))
         self.assertEqual(keyboard_windows(s2),[])
         self.assertEqual(set(alive_panes(binary,s2)),set(panes2_before))
         panes1=alive_panes(binary,s1)

@@ -41,6 +41,8 @@ kitty --config "$PWD/kitty.conf" python3 "$PWD/launch.py" --cwd "$HOME" --graphi
 
 Launch outside an existing tmux session. Allow at least 140 columns by 40 rows. For a local Kitty window, `--graphics-transport tempfile` uses Kitty's built-in temporary-file transfer. Kitty and Python must share the filesystem. For SSH, omit that option and use the default direct transfer; never forward `EDEX_GRAPHICS_TRANSPORT=tempfile` to a remote host. Direct multipart transfers still need reattach stress testing after observed decompression errors. The launcher uses its own `edex-terminal-<uid>` socket and project configs; you keep your normal tmux and Yazi settings. Older Yazi releases may use incompatible Lua APIs. Native Windows terminals and nested tmux are outside the tested setup.
 
+For a local dotted window, run `python3 app.py --cwd "$HOME"`. This entry point opens Kitty with the bundled grid and forwards session controls without opening another window. The [Arch preview recipe](docs/PACKAGING.md) installs the same entry point as `edex-ui-tui`; it is not an AUR release yet.
+
 | Control | Action |
 | --- | --- |
 | Click a tab / Ctrl-b then 1–5 | Switch shell |

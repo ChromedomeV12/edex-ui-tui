@@ -210,20 +210,22 @@ def main():
     tty.setcbreak(sys.stdin.fileno());keyboard=Keyboard();image=Image(stream)
     stream.write(b'\x1b[?1049h\x1b[?25l\x1b[?1000h\x1b[?1006h');stream.flush()
     buffer=b'';size=None;pressed=None;press_until=0;client_signature=None;was_visible=False;shown_at=0;state=None;last_query=0;last_clients=0
+    revision=None;bootstrap_at=None;last_place=0;revealed=False
     try:
         while alive:
             now=time.monotonic()
             # Hidden-window panes are kept alive but do no raster work.
             if now-last_query>=.5:
                 state=query('display-message','-p','-t',os.environ['TMUX_PANE'],
-                        '#{window_active},#{session_attached},#{pane_width},#{pane_height},#{client_cell_width},#{client_cell_height}')
+                        '#{window_active},#{session_attached},#{pane_width},#{pane_height},#{client_cell_width},#{client_cell_height},#{@edex-layout-revision}')
                 last_query=now
             if state is None:time.sleep(.1);continue
             values=state.split(',')
-            if len(values)!=6 or values[0]=='0' or values[1]=='0':
+            if len(values)!=7 or values[0]=='0' or values[1]=='0':
                 was_visible=False;time.sleep(.2);continue
-            _,_,cols,rows,cw,ch=map(int,values)
-            if not was_visible:shown_at=now
+            _,_,cols,rows,cw,ch=map(int,values[:6])
+            new_revision=values[6]
+            if not was_visible:shown_at=now;revealed=False
             cols=max(1,cols-1);rows=max(1,rows-1);cw=cw or 8;ch=ch or 16
             width,height=cols*cw,rows*ch
             if min(width,height)<40:time.sleep(.2);continue
@@ -255,14 +257,24 @@ def main():
                 reply=query('list-clients','-F','#{client_name},#{client_pid},#{client_created}')
                 if reply is not None:signature=reply
                 last_clients=now
-            redraw=newsize!=size or not was_visible or signature!=client_signature
-            if dirty or redraw or now-shown_at<1.05:
+            redraw=newsize!=size or not was_visible or signature!=client_signature or new_revision!=revision
+            # A slow first PNG can outlast the reveal window. Always submit
+            # its final visible frame rather than leaving the initial blank.
+            if dirty or redraw or not revealed:
                 if redraw:image.close();image=Image(stream);stream.write(b'\x1b[2J')
                 image.pixels(keyboard.png(width,height,pressed,reveal=now-shown_at),update=image.loaded and not redraw)
                 if redraw:
                     image.placement_id=3-image.placement_id;image.place(cols,rows)
+                    last_place=now;bootstrap_at=now+.75
                 stream.flush();size=newsize
-            was_visible=True;client_signature=signature
+                if now-shown_at>=1.05:revealed=True
+            # A join/resize can clear placeholder cells after the first paint.
+            # Repair once after tmux settles; steady heartbeats only place metadata.
+            if bootstrap_at is not None and now>=bootstrap_at:
+                image.place(cols,rows);stream.flush();last_place=now;bootstrap_at=None
+            elif bootstrap_at is None and now-last_place>=2:
+                image.place(cols,rows,repaint=False);stream.flush();last_place=now
+            was_visible=True;client_signature=signature;revision=new_revision
     finally:
         image.close();stream.write(b'\x1b[?1006l\x1b[?1000l\x1b[?25h\x1b[?1049l');stream.flush()
         termios.tcsetattr(sys.stdin.fileno(),termios.TCSADRAIN,settings)
