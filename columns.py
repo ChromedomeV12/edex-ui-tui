@@ -10,6 +10,7 @@ import time
 from functools import lru_cache
 from PIL import Image,ImageDraw
 from render import BG,FG,DIM,GRAY,CYAN,MESH,ORDER,font
+from background import surface
 
 # Shared boundary vertices occur in several adjacent tiles. Rotate each unique
 # vertex once, rather than repeating all of the projection math per polygon.
@@ -75,7 +76,7 @@ def curve_points(values,timestamps,now,box,maximum=100,pixels_per_second=20):
 
 
 def render_column(kind,width,height,data,elapsed,now=None,*,raster=False):
-    image=Image.new('RGB',(width,height),BG);d=ImageDraw.Draw(image)
+    image=surface((width,height),BG);d=ImageDraw.Draw(image)
     unit=height/70;pad=max(6,round(unit*.9));left=pad;right=width-pad
     normal=font(max(15,round(1.6*unit)))
     small=font(max(13,round(1.4*unit)))
@@ -84,7 +85,8 @@ def render_column(kind,width,height,data,elapsed,now=None,*,raster=False):
     def text(x,y,value,ink=FG,f=normal,max_width=None):
         value=fit(value,f,min(max_width if max_width is not None else right-x,right-x))
         stamp=text_stamp(str(value),f,ink)
-        image.paste(stamp,(round(x),round(y)),stamp)
+        if image.mode == 'RGBA':image.alpha_composite(stamp,(round(x),round(y)))
+        else:image.paste(stamp,(round(x),round(y)),stamp)
     def fit(value,face,available):
         value=str(value)
         if face.getlength(value)<=available:return value
@@ -196,7 +198,7 @@ def render_column(kind,width,height,data,elapsed,now=None,*,raster=False):
         if fade<1:
             box=(0,round(start*height),width,round(end*height))
             crop=image.crop(box)
-            image.paste(Image.blend(Image.new('RGB',crop.size,BG),crop,fade),box[:2])
+            image.paste(Image.blend(surface(crop.size,BG),crop,fade),box[:2])
     if raster:return image
     output=io.BytesIO();image.save(output,format='PNG',compress_level=2)
     return output.getvalue()

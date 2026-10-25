@@ -33,12 +33,16 @@ class WorkspacesTest(unittest.TestCase):
                            'bash','--noprofile','--norc')
                 tmux('set-option','-t','edex','@edex-shell',shell)
                 tmux('set-option','-p','-t',shell,'@edex-input-token','integration-test-token')
+                from launch import configure_grid_surface
+                with patch.dict(os.environ, EDEX_GRID_BACKGROUND='1'):
+                    configure_grid_surface(shell, run=tmux)
                 files=tmux('split-window','-d','-t',shell,'-v','-P','-F','#{pane_id}','sleep','30')
                 pid=tmux('display-message','-p','-t',shell,'#{pane_pid}')
                 workspaces.install()
                 header=workspaces.option('@edex-tabs')
                 workspaces.switch(2)
                 second=workspaces.option('@edex-shell')
+                self.assertIn('bg=#05080d', tmux('show-options','-p','-v','-t',second,'window-style'))
                 self.assertNotEqual(second,shell)
                 self.assertEqual(workspaces.option('@edex-active-slot'),'2')
                 self.assertEqual(tmux('show-options','-p','-v','-t',second,'@edex-input-token'),'integration-test-token')

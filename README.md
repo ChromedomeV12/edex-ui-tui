@@ -88,6 +88,18 @@ The browser keeps its own directory. It does not change shell directories. The o
 
 Read the [interface roadmap](docs/INTERFACE-ROADMAP.md) for the upstream dotted background, pop-out detail views, and border integration plan.
 
+On `experiment/kitty-borders`, try the application-specific dotted preset:
+
+```sh
+python3 background.py --launch python3 "$PWD/launch.py" --cwd "$HOME"
+# From another terminal, with the same EDEX_TMUX_SOCKET if you set one:
+python3 launch.py --install-shell-frame
+```
+
+The preset keeps the shell opaque and exposes a shared background behind the instruments, file browser and keyboard. The stored tile targets 1080px height. The clipped frame remains opt-in and adds one empty padding row. Ctrl-b then Shift-P, or a click on Top Processes, opens process details using `top`; press q or Escape to close. On-screen keys pause while that popup owns focus. The popup masks covered frame segments and restores them on close. See the roadmap for remaining resize and multiple-client checks.
+
+Omarchy may apply compositor opacity even when Kitty requests an opaque window. On its Lua-based configuration, an optional app rule is `o.window("^edex-ui-tui$", { tag = "-default-opacity", opacity = "1 1" })`. Review your installed configuration before adding it. The project launcher does not edit compositor settings or normal terminal profiles.
+
 The normal layout still uses tmux borders without eDEX’s clipped corners. The `experiment/kitty-borders` branch has a standalone one-shell prototype using Kitty relative placements and upstream-derived contours. See the [border experiment](docs/BORDER-EXPERIMENT.md) for commands, measurements, and limits. Main retains the reviewed interface.
 
 Rajdhani approximates the upstream typography. We do not distribute United Sans or claim an exact movie-font match. We also have gaps in startup choreography, audio, and other upstream effects.

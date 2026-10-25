@@ -36,6 +36,18 @@ def tmux(*args):
                           check=True,capture_output=True,text=True).stdout.strip()
 
 
+def configure_grid_surface(shell, session='edex', run=None):
+    """Keep the grid outside opaque shells, scoped to this app's window."""
+    if os.environ.get('EDEX_GRID_BACKGROUND') != '1':
+        return
+    run = run or tmux
+    run('set-option', '-t', session, '@edex-grid-background', '1')
+    run('set-environment', '-t', session, 'EDEX_GRID_BACKGROUND', '1')
+    run('set-option', '-w', '-t', shell, 'window-style', 'bg=default,fg=#aacfd1')
+    run('set-option', '-w', '-t', shell, 'window-active-style', 'bg=default,fg=#aacfd1')
+    run('set-option', '-p', '-t', shell, 'window-style', 'bg=#05080d,fg=#aacfd1')
+
+
 def toggle_keyboard():
     session='edex'
     sync_server_env()
@@ -63,6 +75,7 @@ def main():
     p.add_argument('--detach',action='store_true');p.add_argument('--stop',action='store_true')
     p.add_argument('--toggle-keyboard',action='store_true',help='Show/hide the touch keyboard in the existing session')
     p.add_argument('--install-switcher',action='store_true',help='Add the shell tab strip to the existing demo')
+    p.add_argument('--install-shell-frame',action='store_true',help='Add experimental clipped shell edges to an existing session')
     p.add_argument('--files',choices=['auto','yazi','superfile','preview'],default='auto')
     p.add_argument('--skip-intro',action='store_true',help='Skip the upstream-derived theatrical startup sequence')
     p.add_argument('--display-font',type=Path,help='Optional local font, e.g. a licensed United Sans Medium TTF/OTF')
@@ -75,6 +88,9 @@ def main():
         toggle_keyboard();return
     if args.install_switcher:
         from workspaces import install
+        install();return
+    if args.install_shell_frame:
+        from shell_edges import install
         install();return
     if os.environ.get('TMUX'):p.error('Launch from Kitty outside tmux; this uses its own tmux server')
     if not os.environ.get('KITTY_WINDOW_ID'):p.error('Launch in Kitty; tmux graphics support must be tested there')
@@ -100,6 +116,7 @@ def main():
             new_session_args=['-e','EDEX_TMUX_SOCKET='+SOCKET,*new_session_args]
         shell=tmux('new-session',*new_session_args)
         tmux('select-pane','-t',shell,'-T','Shell')
+        configure_grid_surface(shell)
         token=secrets.token_hex(24)
         tmux('set-option','-p','-t',shell,'@edex-input-token',token)
         tmux('set-option','-t','edex','@edex-shell',shell)
@@ -124,6 +141,8 @@ def main():
             instrument('network-column',shell,'-h','20%')
             from workspaces import install
             install()
+            from popups import install as install_popups
+            install_popups()
             tmux('select-pane','-t',shell)
         except Exception:
             tmux('kill-session','-t','edex');raise

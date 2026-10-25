@@ -13,11 +13,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
-      - run: sudo apt-get update && sudo apt-get install -y tmux lua5.4 librsvg2-bin fonts-dejavu-core kitty-terminfo
+      - run: sudo apt-get update && sudo apt-get install -y tmux lua5.4 librsvg2-bin fonts-dejavu-core kitty-terminfo procps
       - run: python -m pip install -r requirements.txt
       - run: python tests/test_port.py
+      - run: python tests/test_background.py
       - run: python tests/test_border_state.py
       - run: python tests/test_tmux_recovery.py
       - run: python tests/test_workspaces.py
       - run: python tests/test_keyboard_touch.py
+      - run: python tests/test_popups.py
       - run: lua5.4 tests/test_grid.lua

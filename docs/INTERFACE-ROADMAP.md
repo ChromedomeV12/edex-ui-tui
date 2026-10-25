@@ -1,14 +1,35 @@
 # Interface roadmap
 
-Research snapshot: 2026-10-25. These are plans, not installed features. Keep the normal layout on main until each experiment passes visual and interaction checks.
+Research snapshot: 2026-10-25. The experiment branch now includes a grid preset, a tab-anchored clipped shell frame and a native process-details popup. Main keeps the reviewed baseline. The remaining items below describe acceptance work and later features.
 
 ## 1. Restore the upstream dotted background
 
 The pinned eDEX main.css defines two crossed linear gradients over the theme's grey. Each dark band occupies 1.85vh of a 2.04vh period. Their intersections leave small square dots. The tron theme uses #05080d for light_black and #262828 for grey. At a 1080px viewport, the period is about 22px and the dots are about 2px wide. Centering and fractional pixel coverage affect the exact phase and edge pixels.
 
-The upstream renderer toggles the solidBackground class during its title sequence and clears it before the main UI. Our boot.py draws a simplified point grid during parts of startup; our steady-state Kitty config has background_image none. The persistent background is still missing. Do not replace it with a circuit-board illustration or an animated particle field.
+The upstream renderer toggles the solidBackground class during its title sequence and clears it before the main UI. Our boot.py draws a simplified point grid during parts of startup. The experiment's kitty-grid.conf now uses a native tiled image, while kitty.conf retains the solid fallback. The current stored tile targets a 1080px viewport; it does not reproduce fractional CSS phase at arbitrary resolutions.
 
 Start with a static tile generated from those CSS dimensions and colors. Test Kitty's native tiled background in a project-specific configuration. Generate the tile for the reviewed viewport, and compare it against a browser-rendered CSS reference. Regenerate on viewport changes only if the comparison shows a material difference. A static background needs no frame loop or metric collector.
+
+### Screenshot layer reference
+
+We inspected the pinned upstream `media/screenshot_default.png` and `media/screenshot_blade.png` on 2026-10-25. The owner then supplied a clearer TRON screenshot showing eDEX v2.2.8-pre. Use that image as the primary visual reference and the pinned CSS to explain the layers. It shows dots in the padding inside the clipped shell frame, including the strip beneath the opaque terminal viewport. Do not fill the whole framed rectangle with a solid background. Keep Blade only as a cross-check for surface boundaries. The owner's attachment remains outside the published repository.
+
+| Region | Dotted background visibility |
+| --- | --- |
+| Outer margins and space between modules | Visible as one shared field |
+| System column, clock, telemetry and process list | Visible behind the content |
+| CPU charts | Visible behind the curves; cpuinfo.class.js sets the chart grid fill and stroke to transparent |
+| Network column, globe surroundings and traffic chart | Visible behind the content; the globe and graph strokes cover their own pixels |
+| Filesystem icon area and gaps around captions | Visible; icons, scrollbar and interaction fills cover their own pixels |
+| Keyboard, gaps, spacebar and outlined Enter interior | Visible in the idle state; letters and outlines cover their own pixels |
+| Pressed keys and file interaction feedback | Apply the upstream state fill; preserve the background beneath it for release |
+| Central terminal viewport | Solid dark surface, including unused space below shell output |
+| Tab faces | Solid dark inactive faces and solid cyan active face |
+| Modal body | Solid dark surface, confirmed in modal.css |
+
+The grid preset uses transparent side-column and keyboard canvases over Kitty's shared tile, with solid shell and tab faces. Keep terminal opacity changes within this application's Kitty launch. Verify the transparent animation frames in the guest before treating this experiment as complete.
+
+Screenshot sources: [default TRON](https://github.com/theelderemo/eDEX-UI-security-patched/blob/d59e5e287d9ebde8920aaf638ae7e685115c3de4/media/screenshot_default.png), [Blade](https://github.com/theelderemo/eDEX-UI-security-patched/blob/d59e5e287d9ebde8920aaf638ae7e685115c3de4/media/screenshot_blade.png).
 
 Check default terminal backgrounds, explicit RGB cell backgrounds, tmux separators, and our opaque instrument rasters. Matching RGB values do not guarantee that Kitty treats a cell as the default background. Avoid a pattern that disappears in one pane or restarts its phase at every divider. If a native tile cannot preserve the intended layers, draw the shared pattern into renderer-owned surfaces using their window-relative origin and cache the static layer. Keep the native shell readable and respect application-supplied backgrounds.
 
@@ -40,6 +61,8 @@ We found modal detail views, not evidence that each original instrument can beco
 
 ### Start with a process-details popup
 
+The experiment now opens procps top in a native tmux popup through Ctrl-b then Shift-P or a click on the system column's process list. The viewer starts on demand. A socket-scoped lock rejects duplicate opens; an input guard blocks on-screen keys from reaching the shell while the popup owns focus. The clipped frame masks only the popup rectangle and restores its covered strokes after closure. This first popup uses tmux's rectangular border; custom clipped modal artwork remains future work.
+
 Use the installed tmux display-popup command first. Give the popup a functional title, cyan frame, mouse/keyboard focus, and a close path that restores the source pane. Create its process only when opened and stop its updates when closed. Reuse a process viewer before building another process manager. Do not open duplicate details windows for repeated activation of the same module.
 
 Use argument-vector subprocess calls for file paths and commands. Do not interpolate filenames into shell or tmux format strings. Preserve Yazi's accepted Enter behavior; expose preview through a separate action rather than changing it without review.
@@ -58,7 +81,22 @@ Acceptance:
 
 Sources: [pinned Modal implementation](https://github.com/theelderemo/eDEX-UI-security-patched/blob/d59e5e287d9ebde8920aaf638ae7e685115c3de4/src/classes/modal.class.js), [process details](https://github.com/theelderemo/eDEX-UI-security-patched/blob/d59e5e287d9ebde8920aaf638ae7e685115c3de4/src/classes/toplist.class.js), [file viewers](https://github.com/theelderemo/eDEX-UI-security-patched/blob/d59e5e287d9ebde8920aaf638ae7e685115c3de4/src/classes/filesystem.class.js), [search](https://github.com/theelderemo/eDEX-UI-security-patched/blob/d59e5e287d9ebde8920aaf638ae7e685115c3de4/src/classes/fuzzyFinder.class.js), and the installed tmux manual and command inventory.
 
+### Other terminal projects reviewed
+
+We inspected source snapshots on 2026-10-25. These are design references, not added runtime dependencies. We have not copied their source code.
+
+| Project and snapshot | Relevant implementation | Application here |
+| --- | --- | --- |
+| Workmux, 3cef212252896a9d69d01cc946a95d6cbf25978f | Its dashboard documentation uses native tmux display-popup -E. Its shared Ratatui popup renderer clears the popup region before drawing; centered_rect clamps to the available area. Its tmux backend resolves pane/session identity without treating a popup process as the owner of the underlying pane. | Keep the native tmux popup, clamp dimensions, preserve the initiating focus and cwd, and identify persistent shells by pane ID. Do not assume that clearing text cells also clears a Kitty image. |
+| TUIOS, 42084d968e7d2db2438abe4aa1378a3de35954ca | os_popup.go computes popup bounds against each client's content region. popup_test.go excludes temporary popups from normal window cycling and covers resizing. kitty_occlusion.go subtracts foreground rectangles from visible image regions, bounds the number of placement slices, and skips unchanged placements. | Keep transient details out of the five shell slots. Preserve uncovered frame segments, restore covered segments on close, and emit graphics only when geometry changes. Add open-popup resize and differing-client tests before claiming support. |
+
+TUIOS manages PTYs, terminal emulation and composition itself. Porting that stack would change this project's architecture. Our frame can use a bounded alpha mask for one native popup without introducing another multiplexer or terminal emulator. The current popup mask records one client's opening rectangle; resizing an open popup and multiple clients remain acceptance work. Do not present this as the full TUIOS compositor.
+
+Sources: [Workmux popup documentation](https://github.com/raine/workmux/blob/3cef212252896a9d69d01cc946a95d6cbf25978f/docs/src/content/docs/guide/dashboard/index.mdx), [popup renderer](https://github.com/raine/workmux/blob/3cef212252896a9d69d01cc946a95d6cbf25978f/src/command/dashboard/ui/popup.rs), [tmux identity handling](https://github.com/raine/workmux/blob/3cef212252896a9d69d01cc946a95d6cbf25978f/src/multiplexer/tmux.rs), [TUIOS popup geometry](https://github.com/Gaurav-Gosain/tuios/blob/42084d968e7d2db2438abe4aa1378a3de35954ca/internal/app/os_popup.go), [Kitty occlusion](https://github.com/Gaurav-Gosain/tuios/blob/42084d968e7d2db2438abe4aa1378a3de35954ca/internal/app/kitty_occlusion.go), [popup tests](https://github.com/Gaurav-Gosain/tuios/blob/42084d968e7d2db2438abe4aa1378a3de35954ca/internal/app/popup_test.go).
+
 ## 3. Integrate borders without spending a sixth of the shell area
+
+The full-layout experiment reuses the shell-tab image as its relative-placement anchor, the existing separator columns for its sides, and one empty padding row below the shell. It adds no frame worker. The tab renderer includes geometry in its existing snapshot and uploads a new frame only on layout, client or popup changes. Keep this opt-in through launch.py --install-shell-frame while resize, recovery and multi-client checks continue.
 
 The standalone border probe proves the contour and input separation. Its two-cell bands and native separators consumed 14.76% of the reviewed viewport. Do not copy that allocation into the full layout without reducing it. Reuse the existing shell tab/header region as an anchor where possible, and measure the smallest safe gutters across font sizes.
 
@@ -74,3 +112,17 @@ Read [the border experiment](BORDER-EXPERIMENT.md) for commands, evidence, and o
 4. Add file search and text preview through existing Yazi/editor tools. Test image/PDF support as a separate milestone.
 
 Keep AUR packaging first in the distribution plan. Mise remains planning only. Retest Ubuntu later; do not expand this visual pass into a system-theme rewrite or a mobile-client compatibility claim.
+
+## Deferred: compare performance against upstream in WSL
+
+Use disposable distro containers inside WSL for repeatable Arch and Debian dependency setups. Plan a comparison with the pinned Electron upstream after the background, edges and popup work settles. Do not start this benchmark as part of the current visual pass.
+
+Match viewport size, visible modules, keyboard visibility, sample workload and animation rate. Measure idle and active CPU, resident memory, startup time, frame pacing and graphics traffic. Include Kitty, tmux, instrument workers and the compositor or display bridge in the port's totals; include Electron's renderer and helper processes in upstream's totals. Record GPU versus software rendering and WSLg/container display overhead. Run warm-up and repeated samples, and report the environment limits alongside results. Containers share the WSL kernel and display path, so these numbers will not establish native Omarchy performance. Keep claims of a performance advantage out of the README until measurements support them.
+
+## Deferred: a closer film-boardroom interpretation
+
+Treat eDEX-UI as an author's interpretation of the TRON boardroom interface. Reconstructing eDEX does not establish fidelity to the film. Finish the current eDEX background, edge and popup work before starting a separate visual direction.
+
+For that later goal, inspect [Rob Scanlon's arscan/encom-boardroom](https://github.com/arscan/encom-boardroom) alongside film stills and [GMUNK's boardroom project](https://work.gmunk.com/TRON-Board-Room), which Scanlon links in his README. Compare palette, typography, panel proportions, globe/network forms, motion and border details. Record which elements come from a film reference, which come from arscan's implementation, and which we adapt to terminal constraints. Scanlon's README distinguishes his globe focus from his looser adaptations of other film elements, so use scene references to settle discrepancies.
+
+Build a reference sheet and prototype selected elements in a separate branch or opt-in preset. Keep the finished eDEX preset available. Reuse existing metrics, native shells and tmux panes; do not add a browser runtime or a second terminal emulator for the styling. Keep functional labels. Review asset and font licenses before copying anything. The owner's existing encom-boardroom fork has its own repository and should remain separate from this TUI project's history.

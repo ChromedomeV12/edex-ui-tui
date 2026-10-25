@@ -16,6 +16,14 @@ The Yazi integration test covers grid movement, paging, empty directories, paren
 
 ## Limits
 
+### Grid, frame and popup experiment (2026-10-25)
+
+We inspected the grid preset in the same disposable Omarchy VM against upstream screenshots and the owner's v2.2.8-pre reference. The tile shows behind instrument and keyboard artwork, file cards and shell-frame padding; the native shell and tab faces remain solid. An app-scoped compositor opacity override removed the desktop wallpaper showing through the shell. The launcher does not install that override.
+
+The full Python/Lua suite passed at the integration checkpoint. After the popup fixes, focused checks passed eight background/frame contracts and two popup contracts, including close/reopen, duplicate opens, shell PID/cwd preservation, initiating-pane focus, blocked on-screen input and restoration of masked frame pixels. We inspected real captures with the popup open and closed. A raw graphics alpha update was necessary to clear covered frame strokes; re-transmitting under the same image ID left stale strokes in the first attempt.
+
+In the review session we exercised resize and restore, shell zoom/unzoom, a round trip through shell slot two, and keyboard hide/show. The original shell PID survived, the padding returned to one row, and a settled desktop capture showed both columns, keyboard and clipped frame. These checks do not establish flicker-free transitions. Reattach with the grid preset was checked before frame integration; full-frame reattach, resizing an open popup and differing clients remain unverified. The stored grid uses an integer 1080px reference tile, not arbitrary-resolution CSS rasterization. No Electron performance comparison has run.
+
 We have not verified physical touchscreen input, iOS/Android SSH clients, Mosh graphics transport, complete boot choreography, audio, all upstream effects, or pixel-perfect equivalence. Physical typing does not trigger keyboard highlights. We use an open font approximation. Border experiments remain separate from main.
 
 We excluded old capture collections and local manifests from this repository. The README includes an owner-supplied Omarchy VM screenshot and a keyboard renderer preview. The VM screenshot shows the interface before the repository extraction, so its file listing uses the earlier folder layout.

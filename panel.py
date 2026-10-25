@@ -44,6 +44,7 @@ def main():
     attached=False;last_attach_check=0
     settings=termios.tcgetattr(sys.stdin.fileno());tty.setcbreak(sys.stdin.fileno())
     stream.write(b'\x1b[?1049h\x1b[?25l');stream.flush()
+    if args.kind=='system':stream.write(b'\x1b[?1000h\x1b[?1006h');stream.flush()
     frames=0;total_bytes=0
     cell=(8,16)
     client_signature=None
@@ -87,7 +88,17 @@ def main():
             if os.environ.get('TMUX') and not attached:
                 time.sleep(.1);continue
             if select.select([sys.stdin],[],[],0)[0]:
-                if os.read(sys.stdin.fileno(),32) in (b'q',b'\x03',b'\x1b'):break
+                incoming=os.read(sys.stdin.fileno(),1024)
+                if incoming in (b'q',b'\x03',b'\x1b'):break
+                if args.kind=='system':
+                    from keyboard import MOUSE
+                    match=MOUSE.match(incoming)
+                    if match and match[1]==b'0' and match[4]==b'M':
+                        _,pane_rows=shutil.get_terminal_size((40,20))
+                        if (int(match[3])-1)/max(1,pane_rows-1)>=.78:
+                            subprocess.Popen([sys.executable,str(Path(__file__).parent/'popups.py')],
+                                             stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,
+                                             stderr=subprocess.DEVNULL)
             if tick-last_sample>=1:
                 sample_start=time.monotonic()
                 data=metrics.sample();last_sample=tick
@@ -125,7 +136,8 @@ def main():
             # Full image replacement every two seconds caused visible flashes.
             # Rebuild only for actual resize/visibility/client changes.
             upload_start=time.monotonic()
-            image.pixels(png,update=image.loaded and not redraw,size=frame_size)
+            image.pixels(png,update=image.loaded and not redraw,size=frame_size,
+                         channels=len(raster.getbands()) if frame_size else 3)
             if redraw or tick-last_placement>=1:
                 # Keep the placement ID and cells stable during animation.
                 # Heartbeats repair only placement metadata; repaint cells on
@@ -144,6 +156,7 @@ def main():
             if next_frame<now:next_frame=now  # Drop late slots; never burst to catch up.
             time.sleep(max(0,next_frame-now))
     finally:
+        if args.kind=='system':stream.write(b'\x1b[?1006l\x1b[?1000l')
         image.close();stream.write(b'\x1b[0m\x1b[?25h\x1b[?1049l');stream.flush()
         termios.tcsetattr(sys.stdin.fileno(),termios.TCSADRAIN,settings)
         # Developer-supplied lab log only; nothing enters source control.

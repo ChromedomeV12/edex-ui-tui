@@ -162,6 +162,7 @@ def new_session(cwd):
 
 
 def build(session_id,shell):
+    from launch import configure_grid_surface
     tmux('select-pane','-t',shell,'-T',SHELL_TITLE)
     tmux('set-option','-t',session_id,MARKER,secrets.token_hex(16))
     # Session-scoped, never global: children the server later spawns in this
@@ -178,6 +179,7 @@ def build(session_id,shell):
     split_gutter(shell,'-h')             # right gutter
     window=tmux('display-message','-p','-t',shell,'#{window_id}')
     hide_window_border_glyphs(window)
+    configure_grid_surface(shell, session_id, run=tmux)
     tmux('set-option','-t',session_id,SHELL_ID,shell)
     tmux('set-option','-t',session_id,RENDERER_ID,header)
     tmux('select-pane','-t',shell)

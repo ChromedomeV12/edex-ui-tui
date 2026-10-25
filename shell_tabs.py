@@ -32,7 +32,8 @@ def hit_tab(x,y,width,height,viewport_height=1080):
 
 
 def render_tabs(width,height,active,occupied,viewport_height=1080):
-    image=Raster.new('RGB',(width,height),BG);d=ImageDraw.Draw(image)
+    from background import surface
+    image=surface((width,height),BG);d=ImageDraw.Draw(image)
     step,strip,cut=tab_geometry(width,height,viewport_height);face=font(16)
     for i in range(5):
         x=i*step;end=(i+1)*step
@@ -49,6 +50,7 @@ def render_tabs(width,height,active,occupied,viewport_height=1080):
 def main():
     from keyboard import MOUSE
     from workspaces import switch
+    from shell_edges import ShellFrame
     alive=True
     def stop(*_):
         nonlocal alive
@@ -56,21 +58,22 @@ def main():
     signal.signal(signal.SIGTERM,stop);signal.signal(signal.SIGINT,stop);signal.signal(signal.SIGHUP,stop)
     settings=termios.tcgetattr(sys.stdin.fileno());tty.setcbreak(sys.stdin.fileno())
     stream=sys.stdout.buffer;image=Image(stream);last=None;last_place=0;buffer=b'';bootstrap_at=None;png=None;raw=None;last_query=0
+    frame=ShellFrame(stream)
     stream.write(b'\x1b[?1049h\x1b[?25l\x1b[?1000h\x1b[?1006h');stream.flush()
     try:
         while alive:
             if time.monotonic()-last_query>=.5:
                 raw=query('display-message','-p','-t',os.environ['TMUX_PANE'],
-                      '#{window_height}|#{window_active}|#{session_attached}|#{pane_width}|#{pane_height}|#{client_cell_width}|#{client_cell_height}|#{@edex-active-slot}|#{@edex-slot-1}|#{@edex-slot-2}|#{@edex-slot-3}|#{@edex-slot-4}|#{@edex-slot-5}')
+                      '#{window_height}|#{window_active}|#{session_attached}|#{pane_width}|#{pane_height}|#{client_cell_width}|#{client_cell_height}|#{@edex-active-slot}|#{@edex-slot-1}|#{@edex-slot-2}|#{@edex-slot-3}|#{@edex-slot-4}|#{@edex-slot-5}|#{client_pid}|#{client_created}|#{@edex-shell-frame}|#{@edex-shell}|#{P:#{pane_id}/#{pane_left}/#{pane_top}/#{pane_width}/#{pane_height}~}|#{@edex-modal-open}|#{window_zoomed_flag}|#{@edex-shell-padding}|#{@edex-popup-box}')
                 last_query=time.monotonic()
             if raw is None:time.sleep(.2);continue
             fields=raw.split('|')
-            if len(fields)!=13 or fields[1]=='0' or fields[2]=='0':
+            if len(fields)!=22 or fields[1]=='0' or fields[2]=='0':
                 last=None;time.sleep(.2);continue
             window_rows=int(fields[0]);cols,rows,cw,ch=map(int,fields[3:7]);cols=max(1,cols-1);cw=cw or 9;ch=ch or 20
             viewport_height=window_rows*ch
-            active=int(fields[7] or '1');occupied=[bool(pane) for pane in fields[8:]]
-            state=(cols,rows,cw,ch,viewport_height,active,tuple(occupied))
+            active=int(fields[7] or '1');occupied=[bool(pane) for pane in fields[8:13]]
+            state=(cols,rows,cw,ch,viewport_height,active,tuple(occupied),tuple(fields[13:15]))
             if select.select([sys.stdin],[],[],.1)[0]:
                 buffer+=os.read(sys.stdin.fileno(),1024)
                 while match:=MOUSE.match(buffer):
@@ -89,7 +92,12 @@ def main():
                 image.pixels(png,update=True);last_place=0;bootstrap_at=None
             if time.monotonic()-last_place>=1:
                 image.place(cols,rows,repaint=False);last_place=time.monotonic()
+            if fields[15]=='1':
+                frame.update((image,fields[16],os.environ.get('TMUX_PANE')),fields[17],
+                             cols,rows,cw,ch,viewport_height,
+                             hidden=fields[19]=='1',padding=fields[20],popup=fields[21])
     finally:
+        frame.close()
         image.close();stream.write(b'\x1b[?1006l\x1b[?1000l\x1b[?25h\x1b[?1049l');stream.flush()
         termios.tcsetattr(sys.stdin.fileno(),termios.TCSADRAIN,settings)
 

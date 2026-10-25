@@ -112,7 +112,8 @@ class Keyboard:
 
     def png(self,width,height,pressed=None,reveal=None):
         # Supersampling preserves the CSS's fractional borders and rounded joins.
-        aa=2;image=Raster.new('RGB',(width*aa,height*aa),BG);d=ImageDraw.Draw(image)
+        from background import surface
+        aa=2;image=surface((width*aa,height*aa),BG);d=ImageDraw.Draw(image)
         state='fn' if 'FN' in self.modifiers else 'shift' if 'SHIFT' in self.modifiers else 'normal'
         boxes=list(key_geometry(width,height,state));scale,dx,dy=geometry_transform(width,height)
         edge=tuple(round((a+b)/2) for a,b in zip(bytes.fromhex(FG[1:]),bytes.fromhex(BG[1:])))
@@ -157,8 +158,9 @@ class Keyboard:
                 extent=width*(1-(1-progress)**3)/2
                 y0=round(row*height/5)*aa;y1=round((row+1)*height/5)*aa
                 if extent<width/2:
-                    d.rectangle((0,y0,max(0,round(width/2-extent))*aa,y1),fill=BG)
-                    d.rectangle((min(width,round(width/2+extent))*aa,y0,width*aa,y1),fill=BG)
+                    blank=(0,0,0,0) if image.mode=='RGBA' else BG
+                    d.rectangle((0,y0,max(0,round(width/2-extent))*aa,y1),fill=blank)
+                    d.rectangle((min(width,round(width/2+extent))*aa,y0,width*aa,y1),fill=blank)
         image=image.resize((width,height),Raster.Resampling.LANCZOS)
         out=io.BytesIO();image.save(out,format='PNG',compress_level=2);return out.getvalue()
 
@@ -176,6 +178,9 @@ def send_to_shell(pane,token,payload):
 
 
 def route_key(args,payload):
+    # A popup owns focus. The optional keyboard must not type behind it.
+    modal=query('show-options','-qv','-t','edex','@edex-modal-open')
+    if modal is None or modal=='1':return
     active=query('show-options','-qv','-t','edex','@edex-shell')
     if active:send_to_shell(active,args.token,payload)
 

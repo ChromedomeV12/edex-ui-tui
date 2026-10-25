@@ -56,6 +56,8 @@ def switch(slot):
             tmux('set-option','-p','-t',target,'@edex-input-token',token)
             tmux('set-option','-p','-t',target,'remain-on-exit','on')
             tmux('set-option','-t','edex','@edex-slot-'+str(slot),target)
+            if option('@edex-grid-background') == '1':
+                tmux('set-option','-p','-t',target,'window-style','bg=#05080d,fg=#aacfd1')
         if tmux('display-message','-p','-t',target,'#{pane_dead}')=='1':
             tmux('respawn-pane','-t',target)
         if target==current:return

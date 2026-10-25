@@ -53,17 +53,18 @@ class Image:
         with graphics_lock(self.stream):
             self.stream.write(command(dict(i=self.id, q=2, **params), tmux=self.tmux))
 
-    def pixels(self, png, update=False, *, size=None):
+    def pixels(self, png, update=False, *, size=None, channels=3):
         # Base64 chunks are bounded for tmux's passthrough parser. Updating the
         # existing root frame bounds image/frame storage instead of appending.
+        if channels not in (3,4):raise ValueError('raw graphics require RGB or RGBA')
         encoded = base64.b64encode(png)
         chunks = [encoded[i:i+2048] for i in range(0, len(encoded), 2048)]
         with graphics_lock(self.stream):
             for index, chunk in enumerate(chunks):
                 params = dict(m=int(index < len(chunks)-1))
-                if update and self.loaded:params['a']='f'
+                if update and self.loaded:params.update(a='f',i=self.id,q=2)
                 if index == 0:
-                    params.update(a='f' if update and self.loaded else 't', f=24 if size else 100, i=self.id, q=2)
+                    params.update(a='f' if update and self.loaded else 't', f=channels*8 if size else 100, i=self.id, q=2)
                     if size:params.update(s=size[0],v=size[1],o='z')
                     if update and self.loaded:
                         params.update(r=1, X=1)
