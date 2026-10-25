@@ -59,6 +59,8 @@ python3 launch.py --stop
 
 Use `--skip-intro` to skip startup. `--files auto|yazi|superfile|preview` selects navigation; the custom icon grid needs Yazi and librsvg. For other Python environments, install [requirements.txt](requirements.txt) in a virtual environment. Supply your own licensed fonts with `--display-font` and `--light-font`; we bundle Rajdhani under the OFL.
 
+Animations target 24 FPS by default. For a new session, `--fps 30`, `--fps 48` or `--fps 60` opts into a higher target. Reattaching an existing session keeps its workers' current target. Higher targets cost more CPU and do not guarantee that Kitty presents that many frames. Read the [performance checks](docs/PERFORMANCE.md) before choosing one.
+
 ## File navigation
 
 Click the file pane first. The caption highlight tracks your current card; `*` means a file belongs to a batch selection.
@@ -109,6 +111,8 @@ Rajdhani approximates the upstream typography. We do not distribute United Sans 
 Physical typing does not light up the on-screen keyboard yet. We have tested synthetic mouse taps through tmux, but not a physical tablet. Tablet SSH clients need Kitty graphics, Unicode placeholders, and mouse events; we have not verified a compatible iOS or Android setup, or graphics transport through Mosh. See [keyboard behavior and tests](docs/KEYBOARD.md).
 
 We still need broader resize, reattach, and multiple-client testing. CPU rasterization has a cost. Please include your terminal version, tmux version, and reproduction steps when reporting rendering problems.
+
+The tab worker now restores side-column proportions and tab height after window-size changes, using the existing tmux panes. It leaves zoomed panes alone. Keep at least 140 columns by 40 rows; smaller layouts remain outside the supported size range.
 
 ## Contribute
 

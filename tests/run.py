@@ -6,7 +6,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 env = dict(os.environ, PYTHONPATH=str(ROOT) + os.pathsep + os.environ.get('PYTHONPATH', ''))
-names = ['test_port.py', 'test_local_transport.py', 'test_background.py', 'test_palette.py', 'test_border_state.py', 'test_tmux_recovery.py', 'test_workspaces.py', 'test_keyboard_touch.py', 'test_popups.py', 'test_profile_scope.py', 'test_yazi_navigation.py']
+names = ['test_port.py', 'test_local_transport.py', 'test_background.py', 'test_palette.py', 'test_border_state.py', 'test_tmux_recovery.py', 'test_layout.py', 'test_workspaces.py', 'test_keyboard_touch.py', 'test_popups.py', 'test_profile_scope.py', 'test_yazi_navigation.py']
 failed = []
 for name in names:
     result = subprocess.run([sys.executable, str(ROOT/'tests'/name)], cwd=ROOT, env=env)

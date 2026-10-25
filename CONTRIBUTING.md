@@ -10,6 +10,7 @@ You can help with rendering, input, accessibility, performance, or Linux compati
 | panel.py, columns.py, render.py, metrics.py | Instruments, drawing, Linux counters |
 | protocol.py, tmux_control.py | Graphics transport and tmux queries |
 | shell_tabs.py, workspaces.py | Tab drawing and native shell slots |
+| layout.py | Resize-only reflow of existing panes |
 | keyboard.py, keyboard_input_probe.py | Optional keyboard and manual input probe |
 | navigator.py, file_icons.py, navigation/ | File browser integration and Yazi grid |
 | assets/ | Runtime data, SVG icon data, and OFL fonts |

@@ -23,11 +23,12 @@ We inspected instrument renders at 350x680, 260x500 and 220x420 pixels with synt
 
 We inspected the live Omarchy review at 209x49 terminal cells, with the keyboard visible, then reduced the same tmux window to 160x40 and restored it. The shell PID remained unchanged and the instruments kept rendering. This changes tmux's logical window inside the existing Kitty client; it does not simulate a resized desktop or establish high-DPI behavior.
 
-The smaller window exposed uneven tmux reflow: side columns narrowed disproportionately and the tab pane fell to one row. We restored the original allocation after the check. Responsive reflow remains a release gate; the current capture does not establish faithful proportions at arbitrary window sizes. A native process popup still uses the accepted rectangular viewer and has limited frame occlusion during movement.
+The first smaller-window check exposed uneven tmux reflow: side columns narrowed disproportionately and the tab pane fell to one row. The resize handler now restores both columns to 17% of the window width, the visible keyboard to 62%, and the lower strip to 36% height with the keyboard or 30% without it. It derives the tab pane's height from the artwork and cell height, and retains one frame-padding row. The existing tab worker triggers this work on window/cell-size changes; it adds no polling process and does not replace shells. We inspected the corrected 160x40 layout and its return to 209x49 in Omarchy.
+
+The private tmux tests cover 140x40, 160x40, 209x49 and 240x60, hidden keyboard space, zoom preservation and unchanged pane PIDs. A second pass at the same size performs no resize mutations. Keyboard toggling and workspace changes share the same socket-scoped lock with reflow. These checks do not establish faithful proportions at arbitrary window sizes or high-DPI behavior. A native process popup still uses the accepted rectangular viewer and has limited frame occlusion during movement.
 
 ## Remaining release checks
 
-- Preserve side-column proportions and tab height when the client window changes size; retain native shell PIDs and keyboard targeting.
 - Inspect a resized Kitty client and a second font scale, including selection and keyboard states.
 - Check longer local-session stability and repeatable performance samples before packaging.
 - Keep SSH/direct-transfer, multiple-client and physical-touch claims outside the first local alpha until their separate checks pass.

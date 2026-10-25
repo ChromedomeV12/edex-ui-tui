@@ -19,6 +19,7 @@ jobs:
       - run: python tests/test_background.py
       - run: python tests/test_border_state.py
       - run: python tests/test_tmux_recovery.py
+      - run: python tests/test_layout.py
       - run: python tests/test_workspaces.py
       - run: python tests/test_keyboard_touch.py
       - run: python tests/test_popups.py

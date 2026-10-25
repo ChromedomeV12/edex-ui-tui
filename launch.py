@@ -52,6 +52,11 @@ def configure_grid_surface(shell, session='edex', run=None):
 
 
 def toggle_keyboard():
+    from workspaces import lock
+    with lock():_toggle_keyboard()
+
+
+def _toggle_keyboard():
     session='edex'
     sync_server_env()
     shell=tmux('show-options','-v','-t',session,'@edex-shell')
@@ -91,6 +96,8 @@ def main():
     p.add_argument('--install-shell-frame',action='store_true',help='Add experimental clipped shell edges to an existing session')
     p.add_argument('--files',choices=['auto','yazi','superfile','preview'],default='auto')
     p.add_argument('--skip-intro',action='store_true',help='Skip the upstream-derived theatrical startup sequence')
+    p.add_argument('--fps',type=int,choices=(24,30,48,60),default=24,
+                   help='Animation target for a new session; higher rates need local performance testing')
     p.add_argument('--graphics-transport',choices=['direct','tempfile'],
                    default=os.environ.get('EDEX_GRAPHICS_TRANSPORT','direct'),
                    help='Use tempfile only when Kitty and this process share a filesystem; direct for SSH')
@@ -143,7 +150,7 @@ def main():
         def instrument(kind,target,orientation,percentage,before=False):
             cmd=['split-window','-d','-t',target,orientation,'-l',percentage,'-P','-F','#{pane_id}']
             if before:cmd.append('-b')
-            cmd.extend([sys.executable,str(ROOT/'panel.py'),kind,'--shell-pane',shell])
+            cmd.extend([sys.executable,str(ROOT/'panel.py'),kind,'--shell-pane',shell,'--fps',str(args.fps)])
             pane=tmux(*cmd);tmux('select-pane','-t',pane,'-T',kind.capitalize());return pane
         try:
             # Upstream main_shell 65vw, side columns 17vw. Bottom row spans

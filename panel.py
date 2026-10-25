@@ -26,6 +26,7 @@ def main():
     parser.add_argument('--shell-pane')
     parser.add_argument('--fps',type=int,default=24)
     args=parser.parse_args()
+    if not 1<=args.fps<=60:parser.error('fps must be between 1 and 60')
     if not sys.stdout.isatty():parser.error('A Kitty terminal pane is required')
     if not Path('/proc/stat').exists():parser.error('Linux / WSL is required')
     alive=True;resized=True
@@ -49,6 +50,7 @@ def main():
     cell=(8,16)
     client_signature=None
     frame_times=deque(maxlen=2048);upload_times=deque(maxlen=2048);sample_times=deque(maxlen=256)
+    frame_intervals=deque(maxlen=2048);previous_frame=None
     next_frame=time.monotonic()
     last_report=0
     last_placement=0
@@ -62,6 +64,9 @@ def main():
                         p95_ms=round(ordered[min(len(values)-1,int(len(values)*.95))]*1000,2))
         Path(os.environ['EDEX_METRIC_LOG']).write_text(json.dumps(dict(
             frames=frames,png_bytes=total_bytes,seconds=time.monotonic()-started,
+            target_fps=args.fps,
+            submitted_fps=round(len(frame_intervals)/sum(frame_intervals),2) if frame_intervals else 0,
+            frame_interval=summary(frame_intervals),
             raster=summary(frame_times),upload=summary(upload_times),sample=summary(sample_times))))
     try:
         while alive:
@@ -147,10 +152,13 @@ def main():
             if redraw:
                 size=newsize;resized=False
             stream.flush();frames+=1;total_bytes+=len(png)
+            finished=time.monotonic()
+            if previous_frame is not None:frame_intervals.append(finished-previous_frame)
+            previous_frame=finished
             upload_times.append(time.monotonic()-upload_start)
             if tick-last_report>=5:
                 report();last_report=tick
-            fps=max(1,min(args.fps,30)) if args.kind in ('globe','system','network-column') else 1
+            fps=args.fps if args.kind in ('globe','system','network-column') else 1
             next_frame+=1/fps
             now=time.monotonic()
             if next_frame<now:next_frame=now  # Drop late slots; never burst to catch up.

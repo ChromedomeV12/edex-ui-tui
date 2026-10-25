@@ -21,6 +21,20 @@ import workspaces
 
 
 class WorkspacesTest(unittest.TestCase):
+    def test_launcher_passes_opt_in_animation_rate_to_both_instruments(self):
+        socket='edex-rate-check-'+str(os.getpid())
+        binary=shutil.which('tmux');self.assertIsNotNone(binary)
+        try:
+            with tempfile.TemporaryDirectory() as folder:
+                full_launch(binary,socket,Path(folder),Path(folder),fps=48)
+                rows=tmux_client(binary,socket,'list-panes','-t','edex:0','-F',
+                                 '#{pane_title}|#{pane_start_command}').stdout.splitlines()
+                instruments=[line for line in rows if line.startswith(('System|','Network-column|'))]
+                self.assertEqual(len(instruments),2)
+                for line in instruments:self.assertIn('--fps 48',line)
+        finally:
+            subprocess.run([binary,'-L',socket,'kill-server'],capture_output=True)
+
     def test_keyboard_resize_preserves_tabs_shell_and_hidden_worker(self):
         import launch
         label='edex-keyboard-layout-check-'+str(os.getpid())
@@ -128,10 +142,10 @@ def child_env(pid):
         return b''
 
 
-def full_launch(binary,socket,cwd,lock_dir):
+def full_launch(binary,socket,cwd,lock_dir,fps=24):
     result=subprocess.run(
         [sys.executable,str(ROOT/'launch.py'),'--detach','--skip-intro','--files','preview',
-         '--cwd',str(cwd)],
+         '--cwd',str(cwd),'--fps',str(fps)],
         env=outside_env(EDEX_TMUX_SOCKET=socket,XDG_RUNTIME_DIR=str(lock_dir)),
         capture_output=True,text=True,timeout=180)
     if result.returncode!=0:

@@ -81,3 +81,11 @@ After warm-up, we took three consecutive ten-second samples of the Omarchy revie
 The median total was 141.90% of one core. Session descendants accounted for 113.30% to 126.09%; Kitty accounted for 17.30% to 18.60%. Shared pages contribute to several RSS totals, and the snapshot method misses short-lived processes. The earlier eight-second sample used a different session state, so it does not establish a before/after improvement or regression.
 
 The profiler's separate 12-frame CPU microbenchmarks reported network-column zlib/RGB median render-and-encode times of 28.45 to 34.02 ms and system times of 10.87 to 16.96 ms. These benchmarks render fixed-size synthetic frames after each idle sample; they do not measure displayed frame pacing. Profile the globe drawing and raster/transfer path next. We have not set or met a release performance budget, completed a long soak, or compared against Electron.
+
+### Responsive reflow and opt-in frame targets
+
+The resize pass adds layout.py, called by the existing tab worker on window or cell-size changes. It resizes existing panes under the workspace lock, skips zoomed windows and active modals, and leaves layouts below 140x40 outside its supported range. It does not respawn panes or add a watcher process. Private tmux integration checks cover shrink/grow, no-op passes, hidden keyboard space and zoom, including unchanged pane PIDs. Both full distro suites passed. Focused checks also passed on both distros after adding delimiter handling for file-pane titles containing a vertical bar.
+
+We inspected corrected 160x40 and restored 209x49 Omarchy captures. Both side columns retain 17% width and the tab artwork retains enough rows. The supported resize tests use a logical tmux window inside the same Kitty client; a desktop/client resize and another font scale remain separate checks.
+
+The launcher now passes opt-in 24/30/48/60 targets to newly created instrument workers; the default stays 24. The prior renderer silently capped requests at 30. Its optional developer reports now include submission intervals and achieved submission rate, without claiming display presentation. The [performance record](PERFORMANCE.md) lists the four-target trial and its limits. We restored 24 FPS and preserved the native shell after that trial.
