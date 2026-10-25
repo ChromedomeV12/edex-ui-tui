@@ -11,6 +11,7 @@ from functools import lru_cache
 from PIL import Image,ImageDraw
 from render import BG,FG,DIM,GRAY,CYAN,MESH,ORDER,font
 from background import surface
+from palette import PRIMARY,blend
 
 # Shared boundary vertices occur in several adjacent tiles. Rotate each unique
 # vertex once, rather than repeating all of the projection math per polygon.
@@ -22,7 +23,7 @@ for tile in MESH:
             _vertex_ids[vertex]=len(VERTICES);VERTICES.append(vertex)
         face.append(_vertex_ids[vertex])
     FACES.append((face,tuple(sum(v[i] for v in tile)/len(tile) for i in range(3))))
-GLOBE_INKS=[tuple(round(v*(.2+.8*i/255)) for v in (170,207,209)) for i in range(256)]
+GLOBE_INKS=[tuple(round(v*(.2+.8*i/255)) for v in PRIMARY) for i in range(256)]
 
 
 @lru_cache(maxsize=512)
@@ -149,9 +150,9 @@ def render_column(kind,width,height,data,elapsed,now=None,*,raster=False):
         mem=data['memory'];total=mem['MemTotal'];active=mem.get('Active',total-mem['MemAvailable'])
         y=height*.58;heading(y,'MEMORY',f'{active/2**30:.1f} / {total/2**30:.1f} GiB')
         used=min(440,round(440*active/total));available=min(440-used,round(440*max(0,mem['MemAvailable']-mem['MemFree'])/total))
-        colors=['#152023']*440
+        colors=[blend(.1)]*440
         for i in ORDER[:used]:colors[i]=FG
-        for i in ORDER[used:used+available]:colors[i]='#374448'
+        for i in ORDER[used:used+available]:colors[i]=blend(.3)
         for i,color in enumerate(colors):
             col,row=divmod(i,11);x=left+col*(right-left)/40;yy=y+unit*3+row*height*.009
             d.rectangle((x,yy,x+max(1,(right-left)/40*.28),yy+max(1,height*.003)),fill=color)

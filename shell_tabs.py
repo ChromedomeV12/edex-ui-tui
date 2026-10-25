@@ -32,18 +32,20 @@ def hit_tab(x,y,width,height,viewport_height=1080):
 
 
 def render_tabs(width,height,active,occupied,viewport_height=1080):
-    from background import surface
-    image=surface((width,height),BG);d=ImageDraw.Draw(image)
+    from palette import blend
+    image=Raster.new('RGB',(width,height),BG);d=ImageDraw.Draw(image)
     step,strip,cut=tab_geometry(width,height,viewport_height);face=font(16)
     for i in range(5):
         x=i*step;end=(i+1)*step
         polygon=[(x-cut/2,0),(end-cut/2,0),(end+cut/2,strip-1),(x+cut/2,strip-1)]
         selected=i+1==active
-        d.polygon(polygon,fill=FG if selected else BG,outline=DIM)
+        d.polygon(polygon,fill=FG if selected else BG)
+        if i:d.line((x-cut/2,0,x+cut/2,strip-1),fill=blend(.5))
         label=('MAIN SHELL' if i==0 else 'SHELL '+str(i+1)) if occupied[i] else 'EMPTY'
         d.text((x+step/2,strip/2),label,font=face,anchor='mm',fill=BG if selected else FG)
     # Clip at the viewport edges as the original overflow:hidden strip does.
-    d.line((0,strip-1,width-1,strip-1),fill=DIM)
+    d.line((0,0,width-1,0),fill=blend(.5))
+    d.line((0,strip-1,width-1,strip-1),fill=blend(.5))
     output=io.BytesIO();image.save(output,format='PNG');return output.getvalue()
 
 
@@ -82,20 +84,29 @@ def main():
                         if slot is not None:switch(slot);last_query=0
                     buffer=buffer[match.end():]
                 if buffer and not b'\x1b[<'.startswith(buffer) and not buffer.startswith(b'\x1b[<'):buffer=b''
+            parent_refreshed=False
             if state!=last:
                 image.close();image=Image(stream);stream.write(b'\x1b[2J')
                 png=render_tabs(cols*cw,rows*ch,active,occupied,viewport_height)
                 image.pixels(png)
                 image.place(cols,rows)
+                parent_refreshed=True
                 last=state;last_place=time.monotonic();bootstrap_at=time.monotonic()+.75
             if bootstrap_at is not None and time.monotonic()>=bootstrap_at:
-                image.pixels(png,update=True);last_place=0;bootstrap_at=None
+                # A previous renderer may finish alternate-screen cleanup just
+                # after respawn. Recover its cleared placeholder cells once.
+                image.pixels(png,update=True);image.place(cols,rows)
+                parent_refreshed=True;last_place=time.monotonic();bootstrap_at=None
             if time.monotonic()-last_place>=1:
                 image.place(cols,rows,repaint=False);last_place=time.monotonic()
-            if fields[15]=='1':
+                parent_refreshed=True
+            # Kitty resolves a virtual placement from the placeholder cells
+            # tmux paints. Create its relative child after bootstrap repaint,
+            # rather than referencing a parent that has not reached Kitty yet.
+            if fields[15]=='1' and bootstrap_at is None:
                 frame.update((image,fields[16],os.environ.get('TMUX_PANE')),fields[17],
                              cols,rows,cw,ch,viewport_height,
-                             hidden=fields[19]=='1',padding=fields[20],popup=fields[21])
+                             recover=parent_refreshed,hidden=fields[19]=='1',padding=fields[20],popup=fields[21])
     finally:
         frame.close()
         image.close();stream.write(b'\x1b[?1006l\x1b[?1000l\x1b[?25h\x1b[?1049l');stream.flush()

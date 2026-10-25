@@ -31,7 +31,7 @@ python3 tests/run.py
 
 The runner executes the Python checks and Lua grid assertions. Integration checks create private tmux servers and temporary fixtures. Install the dependencies before running; a missing dependency counts as a failure. The tests do not type commands into your live shells. Run `python3 tests/test_port.py` for the portable subset; Windows skips Linux-only contracts. GitHub Actions runs the Python and Lua contracts on Python 3.11 and 3.13; run the real Yazi integration check on a machine with the reviewed Yazi version.
 
-For visual changes, launch a separate session and inspect startup, steady motion, resizing, pane zoom, keyboard toggling, and shell switching. Test reattach too. Report what you checked and what remains untested. Process liveness alone does not prove that Kitty displays the graphics. Use `python3 profile_panes.py` to measure this project's processes and render cost.
+For visual changes, launch a separate session and inspect startup, steady motion, resizing, pane zoom, keyboard toggling, and shell switching. Test reattach too. Report what you checked and what remains untested. Process liveness alone does not prove that Kitty displays the graphics. Use `python3 profile_panes.py` to measure the selected session's process groups and render cost. Read its accounting limits before comparing totals. Preserve LF endings when copying configs from Windows; tmux 3.4 rejects CRLF option values.
 
 ## Keep the working baseline
 

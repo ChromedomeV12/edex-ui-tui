@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import secrets
 import contextlib
+import tempfile
 
 
 @contextlib.contextmanager
@@ -48,6 +49,7 @@ class Image:
         self.tmux = tmux
         self.loaded = False
         self.placement_id = 1
+        self.pending_files=set()
 
     def send(self, **params):
         with graphics_lock(self.stream):
@@ -57,12 +59,30 @@ class Image:
         # Base64 chunks are bounded for tmux's passthrough parser. Updating the
         # existing root frame bounds image/frame storage instead of appending.
         if channels not in (3,4):raise ValueError('raw graphics require RGB or RGBA')
+        if os.environ.get('EDEX_GRAPHICS_TRANSPORT')=='tempfile':
+            self.pending_files={path for path in self.pending_files if path.exists()}
+            if len(self.pending_files)>=128:raise RuntimeError('Kitty local image transfer backlog exceeded 128 files')
+            fd,path=tempfile.mkstemp(prefix='tty-graphics-protocol-edex-')
+            path=Path(path);self.pending_files.add(path)
+            try:
+                with os.fdopen(fd,'wb') as output:output.write(png)
+                params=dict(a='f' if update and self.loaded else 't',t='t',
+                            f=channels*8 if size else 100,i=self.id,q=2)
+                if size:params.update(s=size[0],v=size[1],o='z')
+                if update and self.loaded:params.update(r=1,X=1)
+                with graphics_lock(self.stream):
+                    self.stream.write(command(params,base64.b64encode(os.fsencode(path)),self.tmux))
+            except BaseException:
+                path.unlink(missing_ok=True);self.pending_files.discard(path);raise
+            self.loaded=True
+            return
         encoded = base64.b64encode(png)
         chunks = [encoded[i:i+2048] for i in range(0, len(encoded), 2048)]
         with graphics_lock(self.stream):
             for index, chunk in enumerate(chunks):
                 params = dict(m=int(index < len(chunks)-1))
-                if update and self.loaded:params.update(a='f',i=self.id,q=2)
+                # Keep continuation packets associated with the edited root.
+                if update and self.loaded:params.update(a='f',i=self.id,q=2,r=1,X=1)
                 if index == 0:
                     params.update(a='f' if update and self.loaded else 't', f=channels*8 if size else 100, i=self.id, q=2)
                     if size:params.update(s=size[0],v=size[1],o='z')
@@ -90,3 +110,5 @@ class Image:
     def close(self):
         self.send(a='d', d='I')  # Only this pane's random image id, never delete-all.
         self.stream.flush()
+        for path in self.pending_files:path.unlink(missing_ok=True)
+        self.pending_files.clear()

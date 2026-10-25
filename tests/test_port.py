@@ -74,6 +74,7 @@ class PortTests(unittest.TestCase):
             if chunk.startswith(b'm=') and b'a=f' in chunk.split(b';',1)[0]:
                 self.assertIn(b'i=1193046', chunk.split(b';',1)[0])
                 self.assertIn(b'q=2', chunk.split(b';',1)[0])
+                self.assertIn(b'r=1,X=1', chunk.split(b';',1)[0])
         first=value.split(b'\x1b_G')[1:8]
         encoded=b''.join(p.split(b';',1)[1].split(b'\x1b\\')[0] for p in first)
         self.assertEqual(base64.b64decode(encoded),payload)

@@ -18,7 +18,7 @@ The Yazi integration test covers grid movement, paging, empty directories, paren
 
 ### Grid, frame and popup experiment (2026-10-25)
 
-We inspected the grid preset in the same disposable Omarchy VM against upstream screenshots and the owner's v2.2.8-pre reference. The tile shows behind instrument and keyboard artwork, file cards and shell-frame padding; the native shell and tab faces remain solid. An app-scoped compositor opacity override removed the desktop wallpaper showing through the shell. The launcher does not install that override.
+We inspected the grid preset in the same disposable Omarchy VM against upstream screenshots and the owner's v2.2.8-pre reference. The tile shows behind instrument and keyboard artwork, file cards and the space outside the terminal contour. The later corner fix makes the terminal inset solid; the native shell and tab faces remain solid. An app-scoped compositor opacity override removed the desktop wallpaper showing through the shell. The launcher does not install that override.
 
 The full Python/Lua suite passed at the integration checkpoint. After the popup fixes, focused checks passed eight background/frame contracts and two popup contracts, including close/reopen, duplicate opens, shell PID/cwd preservation, initiating-pane focus, blocked on-screen input and restoration of masked frame pixels. We inspected real captures with the popup open and closed. A raw graphics alpha update was necessary to clear covered frame strokes; re-transmitting under the same image ID left stale strokes in the first attempt.
 
@@ -27,3 +27,29 @@ In the review session we exercised resize and restore, shell zoom/unzoom, a roun
 We have not verified physical touchscreen input, iOS/Android SSH clients, Mosh graphics transport, complete boot choreography, audio, all upstream effects, or pixel-perfect equivalence. Physical typing does not trigger keyboard highlights. We use an open font approximation. Border experiments remain separate from main.
 
 We excluded old capture collections and local manifests from this repository. The README includes an owner-supplied Omarchy VM screenshot and a keyboard renderer preview. The VM screenshot shows the interface before the repository extraction, so its file listing uses the earlier folder layout.
+
+## Palette and compatibility pass (2026-10-25)
+
+We kept the native top popup at the owner's request and removed the custom process-table experiment. Its frame mask tracks the opening rectangle only. We do not claim correct occlusion during dragging, popup resize, or use by several clients.
+
+The shared palette reads the pinned tron.json: primary #aacfd1 and background #05080d. We checked memory point states against mod_ramwatcher.css: free 10%, available 30%, active 100%. The dedicated terminal's ANSI slots follow terminal.class.js's grayscale-and-mix fallback. These colors apply to this application's Kitty config, not the owner's general terminal theme. The palette tests compare the config with the derived slots and CSS blends.
+
+We ran the Linux integration suite on Ubuntu 24.04 with Kitty 0.32.2, tmux 3.4, Python 3.12 and Pillow 10.2. The first copy contained CRLF config lines; tmux 3.4 rejected the option values. The LF copy passed. The repository specifies LF through .gitattributes.
+
+A Windows-side capture of the WSLg Kitty window showed both instrument columns, the shared dots, opaque central shell and clipped terminal frame. The minimal test distro needed libwayland-cursor0 and libwayland-egl1 to start Kitty, and librsvg2-bin for original Yazi icons. Its graphics logs report EGL/driver warnings, so this setup does not establish native GPU performance. Physical touch and mobile clients remain untested.
+
+The profiler now groups the selected tmux server, its descendants, attached clients and their Kitty ancestor. It skips empty padding panes and checks process start times before attributing CPU deltas. Its summed RSS includes shared pages more than once; it misses CPU from short-lived processes between snapshots and excludes compositor/GPU/WSLg work. Keep these results separate from a controlled Electron comparison.
+
+### Reattach and local transfer
+
+The finishing pass reproduced blank live panes after a fresh Kitty client attached. Their placeholder cells remained present. A probe that owned its own input captured Kitty decompression and zero-dimension errors during multipart transfers; no graphics replies entered an interactive shell. We removed that probe from the implementation.
+
+The experiment adds `--graphics-transport tempfile` for local Kitty launches. Each image uses one short protocol command referencing a private temporary file. Kitty reads and deletes that file. The sender bounds outstanding files to 128 per image and removes its remaining files on image cleanup. Unit checks cover private permissions, one packet per frame, terminal-side consumption and cleanup without touching unrelated files. This mode requires a shared filesystem. Direct transfer remains the default and needs further reattach stress testing for SSH use.
+
+The frame fix delays the relative child until the tab image completes its bootstrap repaint. Its steady heartbeat refreshes placement metadata without uploading pixels. Geometry, parent and popup-mask changes replace only the frame's owned image root. We inspected renderer restart, fresh-client reattach and native top popup closure in Omarchy. Eleven background/frame checks cover the resulting contour and recovery contracts.
+
+The final source passed 52 Python tests and the Lua grid checks in both reviewed distros. The Omarchy local-transport capture after a fresh client showed System, Network, Yazi, keyboard and the main frame together. Ubuntu's clean local-transport run kept those workers alive through frame installation and keyboard layout changes. The empty frame-padding pane has no worker and is not a failed instrument.
+
+One eight-second Omarchy diagnostic sample reported 129.74% of one CPU core across the selected process groups and 539.84 MiB of summed RSS. No selected process appeared or exited between its snapshots. The review VM and WSLg shared the host, and this is one sample, not a performance comparison or release budget. We have not established an improvement over Electron.
+
+A further stalled-consumer test checks the 128-file limit and cleanup; it passed separately.

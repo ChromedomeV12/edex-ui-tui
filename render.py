@@ -16,8 +16,8 @@ from PIL import Image, ImageDraw, ImageFont
 ROOT = Path(__file__).parent
 # Exact selected upstream tron.json surface and primary ink. This project
 # reconstructs eDEX; it does not replace the collection's other TRON palettes.
-BG = '#05080d'; FG = '#c4e4e6'; BLUE = '#aacfd1'; CYAN = '#aacfd1'
-DIM = '#426067'; GRAY = '#9dbabe'; ORANGE = '#aacfd1'
+from palette import BG, FG, DIM, MUTED as GRAY, PRIMARY
+BLUE = FG; CYAN = FG; ORANGE = FG
 TILES = json.loads((ROOT/'assets/grid.json').read_text())['tiles']
 MESH = [[(p['x']/500,p['y']/500,p['z']/500) for p in tile['b']] for tile in TILES]
 ORDER = list(range(440)); random.Random(12).shuffle(ORDER)
@@ -69,7 +69,7 @@ def render(kind, width, height, data, elapsed, directory=None):
             if depth>0:
                 polygons.append((depth,points))
         for depth,points in sorted(polygons):
-            c=tuple(int(v*(.35+.65*depth)) for v in (111,195,223))
+            c=tuple(int(v*(.35+.65*depth)) for v in PRIMARY)
             d.polygon(points,fill=BG,outline=c)
         d.ellipse((cx-radius,cy-radius,cx+radius,cy+radius),outline=DIM)
     elif kind=='memory':

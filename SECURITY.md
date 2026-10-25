@@ -19,6 +19,7 @@ Review terminal and mouse input, tmux pane identifiers, paths and filenames, ima
 - Upload file icons only to same-user character terminals attached to this project's server. Keep terminal probe replies out of shell input.
 - Create runtime locks with ownership checks and reject symlink targets. Clean up only the image IDs, test processes, and temporary files this project owns.
 - Keep argument boundaries intact when passing paths or input to subprocesses. Do not treat filenames or untrusted terminal responses as shell commands.
+- Local-file graphics require Kitty and the renderer to share a filesystem. Create private files with exclusive creation, bound pending files, and remove only paths owned by the image. Keep this mode off for remote SSH sessions.
 - Keep metrics local. Do not add telemetry or external endpoint lookup without documenting it and obtaining the user's choice.
 
 These are requirements for reviewers, not claims that a security audit has proved each control.

@@ -1,12 +1,12 @@
 [mgr]
 cwd = { fg = "#aacfd1" }
-border_style = { fg = "#37585c" }
+border_style = { fg = "#374448" }
 [indicator]
-current = { bg = "#18343c", bold = true }
-preview = { bg = "#18343c" }
+current = { bg = "#161c21", bold = true }
+preview = { bg = "#161c21" }
 [mode]
 normal_main = { fg = "#05080d", bg = "#aacfd1", bold = true }
-normal_alt = { fg = "#aacfd1", bg = "#18343c" }
+normal_alt = { fg = "#aacfd1", bg = "#161c21" }
 [status]
 overall = { fg = "#aacfd1", bg = "#05080d" }
 [filetype]

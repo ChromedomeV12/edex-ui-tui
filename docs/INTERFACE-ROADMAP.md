@@ -12,7 +12,7 @@ Start with a static tile generated from those CSS dimensions and colors. Test Ki
 
 ### Screenshot layer reference
 
-We inspected the pinned upstream `media/screenshot_default.png` and `media/screenshot_blade.png` on 2026-10-25. The owner then supplied a clearer TRON screenshot showing eDEX v2.2.8-pre. Use that image as the primary visual reference and the pinned CSS to explain the layers. It shows dots in the padding inside the clipped shell frame, including the strip beneath the opaque terminal viewport. Do not fill the whole framed rectangle with a solid background. Keep Blade only as a cross-check for surface boundaries. The owner's attachment remains outside the published repository.
+We inspected the pinned upstream `media/screenshot_default.png` and `media/screenshot_blade.png` on 2026-10-25. The owner then supplied a clearer TRON screenshot showing eDEX v2.2.8-pre. Use that image as the primary visual reference and the pinned CSS to explain the layers. It shows dots in the padding inside the clipped shell frame, including the strip beneath the opaque terminal viewport. During the later corner review, the owner requested that the terminal inset stay solid. The current experiment follows that request and keeps the dots outside the closed terminal contour. This differs from the upstream padding. Keep Blade only as a cross-check for surface boundaries. The owner's attachment remains outside the published repository.
 
 | Region | Dotted background visibility |
 | --- | --- |
@@ -61,7 +61,7 @@ We found modal detail views, not evidence that each original instrument can beco
 
 ### Start with a process-details popup
 
-The experiment now opens procps top in a native tmux popup through Ctrl-b then Shift-P or a click on the system column's process list. The viewer starts on demand. A socket-scoped lock rejects duplicate opens; an input guard blocks on-screen keys from reaching the shell while the popup owns focus. The clipped frame masks only the popup rectangle and restores its covered strokes after closure. This first popup uses tmux's rectangular border; custom clipped modal artwork remains future work.
+The owner chose to keep the existing procps top popup rather than continue the custom process-table renderer. The experiment opens procps top in a native tmux popup through Ctrl-b then Shift-P or a click on the system column's process list. The viewer starts on demand. A socket-scoped lock rejects duplicate opens; an input guard blocks on-screen keys from reaching the shell while the popup owns focus. The clipped frame masks only the popup rectangle and restores its covered strokes after closure. This first popup uses tmux's rectangular border; custom clipped modal artwork remains future work.
 
 Use the installed tmux display-popup command first. Give the popup a functional title, cyan frame, mouse/keyboard focus, and a close path that restores the source pane. Create its process only when opened and stop its updates when closed. Reuse a process viewer before building another process manager. Do not open duplicate details windows for repeated activation of the same module.
 
@@ -112,6 +112,27 @@ Read [the border experiment](BORDER-EXPERIMENT.md) for commands, evidence, and o
 4. Add file search and text preview through existing Yazi/editor tools. Test image/PDF support as a separate milestone.
 
 Keep AUR packaging first in the distribution plan. Mise remains planning only. Retest Ubuntu later; do not expand this visual pass into a system-theme rewrite or a mobile-client compatibility claim.
+
+### Current checkpoint (2026-10-25)
+
+- Keep the native top popup. The custom process-table renderer and its graphics transport experiment have been removed. Its opening-rectangle frame mask remains a limitation when dragging or resizing; do not describe that as solved.
+- Share the pinned primary color and CSS alpha blends across instruments, Yazi and the dedicated terminal palette. Memory uses 10%, 30% and full primary ink for free, available and active points. Continue checking typography, ratios and remaining state fills against upstream.
+- Ubuntu's tmux 3.4 needs LF config files. The repository already specifies LF in .gitattributes; Windows copy workflows must preserve those bytes.
+- Profile the selected server, its descendants, attached tmux clients and their Kitty ancestor. Report shared-page RSS and unobserved short-lived processes as limits. Controlled Electron comparisons remain deferred.
+- Frame recovery now waits for the tab anchor bootstrap, refreshes its relative placement after parent heartbeats, and replaces its owned root on geometry or popup-mask changes. We inspected restart, reattach and native top closure. Keep multi-client work open.
+- Use the opt-in local temporary-file transport for the VM and WSLg reviews. Direct multipart transfers produced Kitty decompression/zero-dimension errors during reattach; stabilize that path before claiming SSH support. Keep local-file mode off across SSH. It uses Kitty's protocol rather than another renderer process.
+
+### Owner's next milestone sequence (2026-10-25)
+
+1. Finish popup open, drag, interaction and close behavior against the security-patched eDEX Modal, modal.css and TopList implementations. Use native terminal controls where they preserve the behavior. Check mouse/touch event routing, focus restoration, clipping during movement, resize, cancellation and child exit. Reproduce only animations present upstream; its custom modal closes with a 100 ms blink.
+2. Audit UI and terminal colors, opacity, shapes, typography and layout ratios against the pinned upstream. Record terminal-cell and hardware constraints, and explain adaptations rather than claiming pixel equivalence. Keep functional labels and existing shell/file-browser behavior.
+3. Run performance checks and validate the current interface on the disposable Ubuntu test distro as well as Omarchy. Include renderer workers, descendants, tmux and Kitty in end-to-end measurements. Keep upstream comparisons controlled, and state display/GPU limitations.
+4. Update usage, compatibility and validation documentation after the implementations pass. Then prune and organize the codebase and prepare the first release, with Arch/AUR packaging first. Do not publish a release before these gates pass.
+5. Start a separate branch for the closer film-boardroom layout and palette, using the existing framework. Keep the eDEX reconstruction available.
+6. Investigate mobile SSH responsiveness and graphics support with measured network conditions. Aim to minimize input and rendering delay; do not promise zero latency. Establish client capability and Mosh compatibility before recommending a setup.
+7. Improve Yazi/shell workflows: explicit file opening or editing in a chosen shell, copying file and directory paths, quoting paths, clipboard availability over SSH, and preserving the browser and shell directories unless an action explicitly changes them. Test with spaces, Unicode and shell metacharacters.
+
+The owner has now authorized the Ubuntu compatibility and performance pass after popup and visual work. The older deferral below records the initial order; it does not block that milestone.
 
 ## Deferred: compare performance against upstream in WSL
 

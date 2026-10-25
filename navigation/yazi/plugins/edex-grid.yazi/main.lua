@@ -1,7 +1,7 @@
 --- @sync entry
 -- GPL-3.0; UI uses Yazi 26.9.1's public Current/Tab/Entity component APIs.
 local M = {}
-local ink, muted, selection = "#c4e4e6", "#9dbabe", "#163038"
+local ink, muted, selection = "#aacfd1", "#586c6f", "#161c21"
 local state = { cols = 1, rows = 1 }
 local ids, marks = {}, {}
 for name, id in (os.getenv("EDEX_ICON_IDS") or ""):gmatch("([%w_]+)=(%d+)") do

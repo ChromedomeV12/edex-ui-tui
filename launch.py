@@ -29,6 +29,8 @@ def sync_server_env():
     # switching and keyboard management.
     if os.environ.get('EDEX_TMUX_SOCKET'):
         tmux('set-environment','-t','edex','EDEX_TMUX_SOCKET',SOCKET)
+    if os.environ.get('EDEX_GRAPHICS_TRANSPORT'):
+        tmux('set-environment','-t','edex','EDEX_GRAPHICS_TRANSPORT',os.environ['EDEX_GRAPHICS_TRANSPORT'])
 
 
 def tmux(*args):
@@ -78,9 +80,13 @@ def main():
     p.add_argument('--install-shell-frame',action='store_true',help='Add experimental clipped shell edges to an existing session')
     p.add_argument('--files',choices=['auto','yazi','superfile','preview'],default='auto')
     p.add_argument('--skip-intro',action='store_true',help='Skip the upstream-derived theatrical startup sequence')
+    p.add_argument('--graphics-transport',choices=['direct','tempfile'],
+                   default=os.environ.get('EDEX_GRAPHICS_TRANSPORT','direct'),
+                   help='Use tempfile only when Kitty and this process share a filesystem; direct for SSH')
     p.add_argument('--display-font',type=Path,help='Optional local font, e.g. a licensed United Sans Medium TTF/OTF')
     p.add_argument('--light-font',type=Path,help='Optional matching local light-weight face')
     p.add_argument('--cwd',default=os.getcwd());args=p.parse_args()
+    os.environ['EDEX_GRAPHICS_TRANSPORT']=args.graphics_transport
     if not shutil.which('tmux'):p.error('Install tmux first')
     if args.stop:
         tmux('kill-session','-t','=edex');return

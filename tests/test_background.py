@@ -15,6 +15,61 @@ from background import ROOT, grid_tile
 
 
 class BackgroundTest(unittest.TestCase):
+    def test_frame_mask_and_new_parent_replace_only_owned_image_root(self):
+        from shell_edges import ShellFrame
+        from protocol import Image as Transport
+        stream=io.BytesIO();frame=ShellFrame(stream)
+        anchor=Transport(stream,image_id=42,tmux=False)
+        raw='%0/36/3/138/29~%4/36/0/138/2~'
+        with patch('tmux_control.query'):
+            def draw(popup=''):
+                frame.update((anchor,'%0','%4'),raw,137,2,9,20,1080,popup=popup)
+                return frame.image.id
+            original=draw();masked=draw('21/6/167/36');restored=draw()
+            anchor.id=43;reattached=draw()
+        self.assertEqual(len({original,masked,restored,reattached}),4)
+        wire=stream.getvalue()
+        for old in (original,masked,restored):
+            self.assertIn(f'i={old},q=2,a=d,d=I'.encode(),wire)
+        self.assertNotIn(b'a=f',wire)
+        self.assertNotIn(b'd=A',wire)
+
+    def test_frame_parent_heartbeat_reattaches_without_uploading_pixels(self):
+        from shell_edges import ShellFrame
+        from protocol import Image as Transport
+        stream=io.BytesIO();frame=ShellFrame(stream)
+        anchor=Transport(stream,image_id=42,tmux=False)
+        raw='%0/36/3/138/29~%4/36/0/138/2~'
+        with patch.object(frame.image,'pixels') as pixels,patch.object(frame.image,'send') as send,patch('tmux_control.query'):
+            frame.update((anchor,'%0','%4'),raw,137,2,9,20,1080)
+            pixels.reset_mock();send.reset_mock()
+            frame.update((anchor,'%0','%4'),raw,137,2,9,20,1080,recover=True)
+            pixels.assert_not_called()
+            send.assert_called_once_with(a='p',p=1,P=42,Q=1,H=-1,V=0,c=140,r=34,z=1)
+            send.reset_mock()
+            frame.update((anchor,'%0','%4'),raw,137,2,9,20,1080)
+            send.assert_not_called();pixels.assert_not_called()
+
+    def test_terminal_contour_keeps_cuts_and_covers_dotted_inset(self):
+        from shell_edges import ShellFrame
+        from protocol import Image as Transport
+        stream=io.BytesIO();frame=ShellFrame(stream)
+        anchor=Transport(stream,image_id=42,tmux=False)
+        raw='%0/36/3/138/29~%4/36/0/138/2~'
+        with patch.object(frame.image,'pixels') as pixels,patch.object(frame.image,'send') as send,patch('tmux_control.query'):
+            frame.update((anchor,'%0','%4'),raw,137,2,9,20,1080)
+        raster=Image.open(io.BytesIO(pixels.call_args.args[0]))
+        # The frame must sit above the tab image, independent of image IDs.
+        self.assertEqual(send.call_args.kwargs['z'],1)
+        self.assertEqual(raster.getpixel((3,100)),(5,8,13,255))
+        self.assertEqual(raster.getpixel((1253,100)),(5,8,13,255))
+        self.assertEqual(raster.getpixel((100,647)),(5,8,13,255))
+        # Preserve the two clipped corners, the tab cells and native shell.
+        self.assertEqual(raster.getpixel((1257,2))[3],0)
+        self.assertEqual(raster.getpixel((1,648))[3],0)
+        self.assertEqual(raster.crop((9,60,1251,640)).getchannel('A').getextrema(),(0,0))
+        self.assertEqual(raster.getpixel((100,20))[3],0)
+
     def test_popup_masks_only_covered_frame_and_close_restores_it(self):
         from shell_edges import ShellFrame
         from protocol import Image as Transport

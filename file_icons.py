@@ -15,6 +15,7 @@ from PIL import Image as Raster
 from protocol import Image,DIACRITICS
 from render import FG,BG,ROOT
 from tmux_control import query
+from background import surface
 
 
 class Icons:
@@ -38,8 +39,10 @@ class Icons:
             png=subprocess.run(['rsvg-convert','-w',str(side),'-h',str(side)],input=svg,
                                capture_output=True,check=True,timeout=5).stdout
             art=Raster.open(io.BytesIO(png)).convert('RGBA')
-            canvas=Raster.new('RGB',(width,height),BG)
-            canvas.paste(art,((width-art.width)//2,(height-art.height)//2),art)
+            canvas=surface((width,height),BG)
+            position=((width-art.width)//2,(height-art.height)//2)
+            if canvas.mode=='RGBA':canvas.alpha_composite(art,position)
+            else:canvas.paste(art,position,art)
             output=io.BytesIO();canvas.save(output,format='PNG')
             self.pngs[name]=output.getvalue()
 

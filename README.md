@@ -26,7 +26,7 @@ This image shows the keyboard renderer. See [validation](docs/VALIDATION.md) for
 
 ## Run
 
-Use Linux with Kitty graphics support. We reviewed the current interface in a disposable Omarchy VM with Kitty 0.49.2, tmux 3.8, Yazi 26.9.1, Python 3.14, and Pillow 12.3. An earlier prototype ran on Ubuntu; we still need to retest the current interface there.
+Use Linux with Kitty graphics support. We reviewed the current interface in a disposable Omarchy VM with Kitty 0.49.2, tmux 3.8, Yazi 26.9.1, Python 3.14, and Pillow 12.3. We also ran the current tests on Ubuntu 24.04 with Kitty 0.32.2 and tmux 3.4, and inspected its WSLg window. Read the graphics and performance limits below.
 
 On Arch or Omarchy:
 
@@ -34,10 +34,10 @@ On Arch or Omarchy:
 sudo pacman -S --needed kitty tmux python-pillow yazi librsvg ttf-dejavu
 git clone https://github.com/ChromedomeV12/edex-ui-tui.git
 cd edex-ui-tui
-kitty --config "$PWD/kitty.conf" python3 "$PWD/launch.py" --cwd "$HOME"
+kitty --config "$PWD/kitty.conf" python3 "$PWD/launch.py" --cwd "$HOME" --graphics-transport tempfile
 ```
 
-Launch outside an existing tmux session. Allow at least 140 columns by 40 rows. The launcher uses its own `edex-terminal-<uid>` socket and project configs; you keep your normal tmux and Yazi settings. Older Yazi releases may use incompatible Lua APIs. Native Windows terminals and nested tmux are outside the tested setup.
+Launch outside an existing tmux session. Allow at least 140 columns by 40 rows. For a local Kitty window, `--graphics-transport tempfile` uses Kitty's built-in temporary-file transfer. Kitty and Python must share the filesystem. For SSH, omit that option and use the default direct transfer; never forward `EDEX_GRAPHICS_TRANSPORT=tempfile` to a remote host. Direct multipart transfers still need reattach stress testing after observed decompression errors. The launcher uses its own `edex-terminal-<uid>` socket and project configs; you keep your normal tmux and Yazi settings. Older Yazi releases may use incompatible Lua APIs. Native Windows terminals and nested tmux are outside the tested setup.
 
 | Control | Action |
 | --- | --- |
@@ -91,12 +91,12 @@ Read the [interface roadmap](docs/INTERFACE-ROADMAP.md) for the upstream dotted 
 On `experiment/kitty-borders`, try the application-specific dotted preset:
 
 ```sh
-python3 background.py --launch python3 "$PWD/launch.py" --cwd "$HOME"
+python3 background.py --launch python3 "$PWD/launch.py" --cwd "$HOME" --graphics-transport tempfile
 # From another terminal, with the same EDEX_TMUX_SOCKET if you set one:
 python3 launch.py --install-shell-frame
 ```
 
-The preset keeps the shell opaque and exposes a shared background behind the instruments, file browser and keyboard. The stored tile targets 1080px height. The clipped frame remains opt-in and adds one empty padding row. Ctrl-b then Shift-P, or a click on Top Processes, opens process details using `top`; press q or Escape to close. On-screen keys pause while that popup owns focus. The popup masks covered frame segments and restores them on close. See the roadmap for remaining resize and multiple-client checks.
+The preset keeps the shell opaque and exposes a shared background behind the instruments, file browser and keyboard. The stored tile targets 1080px height. The clipped frame remains opt-in and adds one empty padding row. Ctrl-b then Shift-P, or a click on Top Processes, opens process details using `top`; press q or Escape to close. On-screen keys pause while that popup owns focus. The popup masks its opening rectangle and restores covered frame segments on close. Moving or resizing it can expose frame overlap; the owner chose to retain this native viewer. See the roadmap for remaining checks.
 
 Omarchy may apply compositor opacity even when Kitty requests an opaque window. On its Lua-based configuration, an optional app rule is `o.window("^edex-ui-tui$", { tag = "-default-opacity", opacity = "1 1" })`. Review your installed configuration before adding it. The project launcher does not edit compositor settings or normal terminal profiles.
 
