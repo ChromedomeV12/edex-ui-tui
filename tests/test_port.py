@@ -25,6 +25,34 @@ def fixture():
 
 
 class PortTests(unittest.TestCase):
+    def test_column_text_keeps_addresses_and_separates_values_on_resize(self):
+        import columns
+        from unittest.mock import patch
+        original_stamp=columns.text_stamp;original_paste=PILImage.Image.paste
+        data=fixture()
+        data['details']=dict(address='255.255.255.255',state='UP',interface='enp0s31f6',
+            processes=[dict(pid=1234567,name='example-long-process-name',cpu=1600.0,memory=100.0)])
+        for width,height in ((350,680),(260,500),(220,420)):
+            records={}
+            def stamp(value,face,ink):
+                art=original_stamp(value,face,ink).copy();art.info['audit_value']=value
+                return art
+            def paste(image,art,box=None,mask=None):
+                if isinstance(art,PILImage.Image) and 'audit_value' in art.info:
+                    bounds=art.getbbox()
+                    if bounds:
+                        x,y=box;records.setdefault(art.info['audit_value'],[]).append(
+                            (x+bounds[0],y+bounds[1],x+bounds[2],y+bounds[3]))
+                return original_paste(image,art,box,mask)
+            with patch('columns.text_stamp',side_effect=stamp),patch.object(PILImage.Image,'paste',new=paste):
+                columns.render_column('network-column',width,height,data,10,now=20)
+                self.assertIn(data['details']['address'],records)
+                columns.render_column('system',width,height,data,10,now=20)
+            cpu=records['1600.0%'][0];memory=records['100.0%'][0]
+            self.assertLess(cpu[2],memory[0])
+            self.assertLess(memory[2],width)
+            self.assertLessEqual(records['UPTIME'][0][3],records['0:05'][0][1])
+
     def test_tmux_read_timeout_and_server_failure_are_recoverable(self):
         from tmux_control import query
         from unittest.mock import patch

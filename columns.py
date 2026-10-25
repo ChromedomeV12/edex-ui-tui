@@ -26,6 +26,15 @@ for tile in MESH:
 GLOBE_INKS=[tuple(round(v*(.2+.8*i/255)) for v in PRIMARY) for i in range(256)]
 
 
+def row_cells(left,right,weights,gap=4):
+    """Bound each value to its own column, including at narrow pane widths."""
+    span=max(0,right-left);total=sum(weights);cursor=left
+    for weight in weights:
+        end=cursor+span*weight/total
+        yield cursor,max(cursor,end-gap)
+        cursor=end
+
+
 @lru_cache(maxsize=512)
 def text_stamp(value,face,ink):
     box=face.getbbox(value)
@@ -79,9 +88,11 @@ def curve_points(values,timestamps,now,box,maximum=100,pixels_per_second=20):
 def render_column(kind,width,height,data,elapsed,now=None,*,raster=False):
     image=surface((width,height),BG);d=ImageDraw.Draw(image)
     unit=height/70;pad=max(6,round(unit*.9));left=pad;right=width-pad
-    normal=font(max(15,round(1.6*unit)))
-    small=font(max(13,round(1.4*unit)))
-    light=font(max(15,round(1.8*unit)))
+    # The CSS scales text with the viewport. Large fixed floors collided with
+    # adjacent module rows after the optional keyboard reduced column height.
+    normal=font(max(11,round(1.6*unit)))
+    small=font(max(10,round(1.4*unit)))
+    light=font(max(12,round(1.8*unit)))
     now=time.monotonic() if now is None else now
     def text(x,y,value,ink=FG,f=normal,max_width=None):
         value=fit(value,f,min(max_width if max_width is not None else right-x,right-x))
@@ -121,12 +132,12 @@ def render_column(kind,width,height,data,elapsed,now=None,*,raster=False):
                 ('TYPE',info.get('system','Linux')),('POWER',info.get('power','--'))]
         for i,(name,value) in enumerate(fields):
             x=left+i*(right-left)/4;text(x,y+6,name,GRAY,small)
-            text(x,y+unit*2.1,value,f=light,max_width=(right-left)/4-5)
+            text(x,y+max(unit*2.1,small.size+5),value,f=light,max_width=(right-left)/4-5)
         y=height*.22;heading(y,'MANUFACTURER','MODEL')
         text(left,y+unit*2.2,fit(info.get('manufacturer','--'),small,width*.48),GRAY,small)
         model=fit(info.get('hardware','--'),small,width*.4)
         text(width*.56,y+unit*2.2,model,GRAY,small)
-        y=height*.285;heading(y,'CPU USAGE',info.get('model','--')[:24])
+        y=height*.285;heading(y,'CPU USAGE',info.get('model','--'))
         cpus=data['cpus'];divide=max(1,len(cpus)//2)
         for group,indices in enumerate([range(divide),range(divide,len(cpus))]):
             y0=y+unit*3.4+group*height*.09;y1=y0+height*.072
@@ -164,18 +175,24 @@ def render_column(kind,width,height,data,elapsed,now=None,*,raster=False):
         d.line((x0,y+unit,x0+(x1-x0)*(usedswap/swap if swap else 0),y+unit),fill=FG,width=3)
         text(x1+3,y,f'{usedswap/2**30:.1f} GiB',GRAY,small)
         y=height*.78;heading(y,'TOP PROCESSES','PID | NAME | CPU | MEM')
+        process_cells=list(row_cells(left,right,(18,44,20,18)))
         for i,process in enumerate(info.get('processes',[])):
             yy=y+unit*3+i*height*.03
-            text(left,yy,process['pid'],f=small,max_width=width*.16-5)
-            text(left+width*.16,yy,process['name'],f=small,max_width=width*.46-8)
-            cpu=process['cpu'];text(width*.66,yy,f'{cpu:.1f}%' if cpu is not None else '--',f=small)
-            text(width*.84,yy,f"{process['memory']:.1f}%",f=small)
+            cpu=process['cpu']
+            values=(process['pid'],process['name'],f'{cpu:.1f}%' if cpu is not None else '--',
+                    f"{process['memory']:.1f}%")
+            for index,((x0,x1),value) in enumerate(zip(process_cells,values)):
+                value=fit(value,small,x1-x0)
+                x=x1-small.getlength(value) if index>=2 else x0
+                text(x,yy,value,f=small,max_width=x1-x)
     else:
         heading(3,'PANEL','NETWORK')
-        y=height*.04;heading(y,'NETWORK STATUS','Interface: '+info.get('interface','--'))
-        for i,(label,value) in enumerate([('STATE',info.get('state','--')),('IPv4',info.get('address','--')),('PING','--')]):
-            x=left+i*(right-left)/3;text(x,y+unit*3,label,GRAY,small)
-            text(x,y+unit*5,value,f=light,max_width=(right-left)/3-5)
+        y=max(height*.04,normal.size+12);heading(y,'NETWORK STATUS','Interface: '+info.get('interface','--'))
+        values=[('STATE',info.get('state','--')),('IPv4',info.get('address','--')),('PING','--')]
+        # mod_netstat.css spans IPv4 over the middle two of four grid columns.
+        for (x,x1),(label,value) in zip(row_cells(left,right,(1,2,1)),values):
+            text(x,y+unit*3,label,GRAY,small,max_width=x1-x)
+            text(x,y+unit*5,value,f=light,max_width=x1-x)
         y=height*.18;heading(y,'WORLD VIEW','GLOBAL NETWORK MAP')
         text(left,y+unit*2.7,'ENDPOINT LAT/LON',GRAY,small)
         text(right-width*.19,y+unit*2.7,'--, --',GRAY,small)

@@ -121,6 +121,9 @@ Keep AUR packaging first in the distribution plan. Mise remains planning only. R
 
 ### Current checkpoint (2026-10-25)
 
+- The [visual audit](VISUAL-AUDIT.md) records source comparisons and terminal-specific adaptations. IPv4 now receives the upstream half-row allocation; process percentages have separate right-aligned bounds. Smaller instrument fonts prevent metadata collisions in short columns. Synthetic renders and a live Omarchy view passed. A 160x40 tmux resize exposed uneven column proportions and a compressed tab strip; responsive reflow is the next visual release gate.
+- Three ten-second local performance samples measured 133.80% to 145.99% of one CPU core across the selected process groups. The network-column raster path costs more CPU than the system column in the separate microbenchmarks. Profile that path before changing the animation rate or adding caches. Long stability checks, frame-pacing measurements and a release budget remain open; see [validation](VALIDATION.md).
+
 - Keep the native top popup. The custom process-table renderer and its graphics transport experiment have been removed. Its opening-rectangle frame mask remains a limitation when dragging or resizing; do not describe that as solved.
 - Share the pinned primary color and CSS alpha blends across instruments, Yazi and the dedicated terminal palette. Memory uses 10%, 30% and full primary ink for free, available and active points. Continue checking typography, ratios and remaining state fills against upstream.
 - Ubuntu's tmux 3.4 needs LF config files. The repository already specifies LF in .gitattributes; Windows copy workflows must preserve those bytes.

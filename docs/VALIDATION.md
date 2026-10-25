@@ -61,3 +61,23 @@ The 2026-10-25 keyboard pass enlarges its open pane and lower strip without stre
 Geometry tests cover four canvas sizes and all three legend states. The synthetic touch test routes the arrow commands through a private tmux client to a byte recorder. A layout integration test opens and hides the keyboard twice, checks file-area restoration and tab-strip height, and verifies that both shell and keyboard PIDs remain unchanged. We inspected the larger keyboard in the live Omarchy review window. Physical touch remains untested.
 
 Rapid hide/show initially cleared the tab-image placeholders even when the renderer observed the same final pane size. The launcher now marks completed keyboard layout changes with a session revision. The tab renderer repaints once for that revision and retains metadata-only heartbeats between changes. We inspected the recovered tabs and shell frame after rapid toggles. The full suites passed on Omarchy and Ubuntu; the frame and workspace checks passed again after this recovery adjustment.
+
+### Instrument typography and row bounds
+
+The next pass corrects the network status grid to the upstream 1:2:1 proportions and bounds each process-table field. CPU and memory values align to their column's right edge. We reduced fixed font-size floors so metadata can fit short columns, and removed a premature CPU-model character limit in favor of measured text fitting.
+
+The regression test records glyph bounds at 350x680, 260x500 and 220x420 pixels. It checks percentage-column separation, uptime label/value separation and full-length IPv4 rendering. The full suites passed on Omarchy and Ubuntu. We inspected synthetic size comparisons and live Omarchy captures; see [the visual audit](VISUAL-AUDIT.md) for remaining resize and font limitations. The Windows run encountered sandbox temporary-directory permission failures in two existing fixture tests; those tests passed in the Linux suites.
+
+### Repeated local performance samples
+
+After warm-up, we took three consecutive ten-second samples of the Omarchy review session at 209x49 cells with both instrument columns, native idle shells, Yazi, tabs, frame and keyboard visible. The workers target 24 FPS. These samples cover the selected process groups, not compositor or GPU cost.
+
+| Sample | CPU, percent of one core | Summed RSS, MiB |
+| --- | --- | --- |
+| 1 | 141.90 | 563.84 |
+| 2 | 145.99 | 563.84 |
+| 3 | 133.80 | 563.84 |
+
+The median total was 141.90% of one core. Session descendants accounted for 113.30% to 126.09%; Kitty accounted for 17.30% to 18.60%. Shared pages contribute to several RSS totals, and the snapshot method misses short-lived processes. The earlier eight-second sample used a different session state, so it does not establish a before/after improvement or regression.
+
+The profiler's separate 12-frame CPU microbenchmarks reported network-column zlib/RGB median render-and-encode times of 28.45 to 34.02 ms and system times of 10.87 to 16.96 ms. These benchmarks render fixed-size synthetic frames after each idle sample; they do not measure displayed frame pacing. Profile the globe drawing and raster/transfer path next. We have not set or met a release performance budget, completed a long soak, or compared against Electron.
