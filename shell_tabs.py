@@ -66,16 +66,16 @@ def main():
         while alive:
             if time.monotonic()-last_query>=.5:
                 raw=query('display-message','-p','-t',os.environ['TMUX_PANE'],
-                      '#{window_height}|#{window_active}|#{session_attached}|#{pane_width}|#{pane_height}|#{client_cell_width}|#{client_cell_height}|#{@edex-active-slot}|#{@edex-slot-1}|#{@edex-slot-2}|#{@edex-slot-3}|#{@edex-slot-4}|#{@edex-slot-5}|#{client_pid}|#{client_created}|#{@edex-shell-frame}|#{@edex-shell}|#{P:#{pane_id}/#{pane_left}/#{pane_top}/#{pane_width}/#{pane_height}~}|#{@edex-modal-open}|#{window_zoomed_flag}|#{@edex-shell-padding}|#{@edex-popup-box}')
+                      '#{window_height}|#{window_active}|#{session_attached}|#{pane_width}|#{pane_height}|#{client_cell_width}|#{client_cell_height}|#{@edex-active-slot}|#{@edex-slot-1}|#{@edex-slot-2}|#{@edex-slot-3}|#{@edex-slot-4}|#{@edex-slot-5}|#{client_pid}|#{client_created}|#{@edex-shell-frame}|#{@edex-shell}|#{P:#{pane_id}/#{pane_left}/#{pane_top}/#{pane_width}/#{pane_height}~}|#{@edex-modal-open}|#{window_zoomed_flag}|#{@edex-shell-padding}|#{@edex-popup-box}|#{@edex-layout-revision}')
                 last_query=time.monotonic()
             if raw is None:time.sleep(.2);continue
             fields=raw.split('|')
-            if len(fields)!=22 or fields[1]=='0' or fields[2]=='0':
+            if len(fields)!=23 or fields[1]=='0' or fields[2]=='0':
                 last=None;time.sleep(.2);continue
             window_rows=int(fields[0]);cols,rows,cw,ch=map(int,fields[3:7]);cols=max(1,cols-1);cw=cw or 9;ch=ch or 20
             viewport_height=window_rows*ch
             active=int(fields[7] or '1');occupied=[bool(pane) for pane in fields[8:13]]
-            state=(cols,rows,cw,ch,viewport_height,active,tuple(occupied),tuple(fields[13:15]))
+            state=(cols,rows,cw,ch,viewport_height,active,tuple(occupied),tuple(fields[13:15]),fields[22])
             if select.select([sys.stdin],[],[],.1)[0]:
                 buffer+=os.read(sys.stdin.fileno(),1024)
                 while match:=MOUSE.match(buffer):

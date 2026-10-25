@@ -53,3 +53,11 @@ The final source passed 52 Python tests and the Lua grid checks in both reviewed
 One eight-second Omarchy diagnostic sample reported 129.74% of one CPU core across the selected process groups and 539.84 MiB of summed RSS. No selected process appeared or exited between its snapshots. The review VM and WSLg shared the host, and this is one sample, not a performance comparison or release budget. We have not established an improvement over Electron.
 
 A further stalled-consumer test checks the 128-file limit and cleanup; it passed separately.
+
+### Keyboard size and arrow alignment
+
+The 2026-10-25 keyboard pass enlarges its open pane and lower strip without stretching the measured layout. We center the Up key over Down and center the four SVG icons within their hit rectangles. The drawing and input paths share these adapted rectangles. We leave the source measurements intact for comparison.
+
+Geometry tests cover four canvas sizes and all three legend states. The synthetic touch test routes the arrow commands through a private tmux client to a byte recorder. A layout integration test opens and hides the keyboard twice, checks file-area restoration and tab-strip height, and verifies that both shell and keyboard PIDs remain unchanged. We inspected the larger keyboard in the live Omarchy review window. Physical touch remains untested.
+
+Rapid hide/show initially cleared the tab-image placeholders even when the renderer observed the same final pane size. The launcher now marks completed keyboard layout changes with a session revision. The tab renderer repaints once for that revision and retains metadata-only heartbeats between changes. We inspected the recovered tabs and shell frame after rapid toggles. The full suites passed on Omarchy and Ubuntu; the frame and workspace checks passed again after this recovery adjustment.

@@ -21,6 +21,37 @@ import workspaces
 
 
 class WorkspacesTest(unittest.TestCase):
+    def test_keyboard_resize_preserves_tabs_shell_and_hidden_worker(self):
+        import launch
+        label='edex-keyboard-layout-check-'+str(os.getpid())
+        def tmux(*args):
+            return subprocess.run(['tmux','-L',label,'-f',str(ROOT/'tmux.conf'),*args],
+                                  check=True,capture_output=True,text=True,timeout=5).stdout.strip()
+        try:
+            shell=tmux('new-session','-d','-s','edex','-x','209','-y','49','-P','-F','#{pane_id}','sleep','30')
+            files=tmux('split-window','-d','-f','-v','-t',shell,'-l','30%','-P','-F','#{pane_id}','sleep','30')
+            tabs=tmux('split-window','-d','-v','-b','-t',shell,'-l','3','-P','-F','#{pane_id}','sleep','30')
+            keyboard=tmux('new-window','-d','-t','edex','-n','_keyboard','-P','-F','#{pane_id}','sleep','30')
+            tmux('select-pane','-t',keyboard,'-T','Keyboard')
+            for option,pane in (('@edex-shell',shell),('@edex-files',files),('@edex-tabs',tabs)):
+                tmux('set-option','-t','edex',option,pane)
+            tmux('set-option','-p','-t',shell,'@edex-input-token','test-only-marker')
+            def value(pane,field):return tmux('display-message','-p','-t',pane,'#{'+field+'}')
+            shell_pid=value(shell,'pane_pid');keyboard_pid=value(keyboard,'pane_pid')
+            with patch('launch.tmux',side_effect=tmux),patch('launch.sync_server_env'):
+                for _ in range(2):
+                    launch.toggle_keyboard()
+                    self.assertEqual(value(tabs,'pane_height'),'3')
+                    self.assertEqual(value(keyboard,'pane_height'),'17')
+                    self.assertGreater(int(value(keyboard,'pane_width')),120)
+                    launch.toggle_keyboard()
+                    self.assertEqual(value(files,'pane_height'),'14')
+                    self.assertEqual(value(tabs,'pane_height'),'3')
+            self.assertEqual(value(shell,'pane_pid'),shell_pid)
+            self.assertEqual(value(keyboard,'pane_pid'),keyboard_pid)
+        finally:
+            subprocess.run(['tmux','-L',label,'kill-server'],capture_output=True)
+
     def test_switch_preserves_shell_process_and_other_sections(self):
         binary=shutil.which('tmux');self.assertIsNotNone(binary)
         label='edex-workspace-check-'+str(os.getpid())

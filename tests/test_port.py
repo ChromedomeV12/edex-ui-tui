@@ -172,6 +172,24 @@ class PortTests(unittest.TestCase):
         keyboard.modifiers={'FN'};fn=keyboard.png(1066,335)
         self.assertEqual(len({normal,shift,fn}),3)
 
+    @unittest.skipUnless(sys.platform=='linux','POSIX keyboard module')
+    def test_arrow_alignment_and_hit_regions_at_multiple_sizes(self):
+        from keyboard import key_geometry
+        for state in ('normal','shift','fn'):
+            for width,height in ((1066,335),(1152,320),(810,260),(540,220)):
+                arrows={b[4]['name'].rsplit('_',1)[-1]:b
+                        for b in key_geometry(width,height,state) if 'ICON: ARROW_' in b[4]['name']}
+                up,down=arrows['UP'],arrows['DOWN']
+                self.assertAlmostEqual(up[0]+up[2],down[0]+down[2])
+                for b in arrows.values():
+                    x,y,w,h=b[5]['rect'];ix,iy,iw,ih=b[5]['icon_rect']
+                    self.assertAlmostEqual(x+w/2,ix+iw/2)
+                    self.assertAlmostEqual(y+h/2,iy+ih/2)
+                    self.assertTrue(0<=b[0]<b[2]<=width)
+                    self.assertTrue(0<=b[1]<b[3]<=height)
+                self.assertAlmostEqual(arrows['LEFT'][1],down[1])
+                self.assertAlmostEqual(arrows['RIGHT'][1],down[1])
+
     @unittest.skipUnless(sys.platform=='linux','boot uses POSIX terminal input')
     def test_boot_source_timing_and_distinct_title_keyframes(self):
         from boot import line_delay,title_frame

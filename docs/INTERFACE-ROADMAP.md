@@ -2,6 +2,12 @@
 
 Research snapshot: 2026-10-25. The experiment branch now includes a grid preset, a tab-anchored clipped shell frame and a native process-details popup. Main keeps the reviewed baseline. The remaining items below describe acceptance work and later features.
 
+## First priority: keyboard size and alignment
+
+Enlarge the optional keyboard before continuing the remaining visual checks. Give it 62% of the lower strip's width and increase that strip from 30% to 36% of the window height while the keyboard is open. Restore the file pane's height when hiding it. Preserve uniform scaling, row stagger and the two-piece Enter key. Center Up over Down and center the arrow artwork inside each hit region. Check normal, Shift and Fn states, synthetic taps, small windows and a live Omarchy capture before closing this item.
+
+Implemented and reviewed on 2026-10-25. At the reviewed 209-column by 49-row size, the keyboard grows from 115 by 14 cells to 129 by 17 cells, increasing its uniform drawing scale by about 23%. Geometry checks cover four canvas sizes and normal, Shift and Fn states. Synthetic taps pass; repeated toggles preserve the shell and keyboard processes, restore the file area and retain the tab strip's height. The live Omarchy capture confirms the larger layout and aligned arrows. Continue the remaining upstream typography and state-color checks below.
+
 ## 1. Restore the upstream dotted background
 
 The pinned eDEX main.css defines two crossed linear gradients over the theme's grey. Each dark band occupies 1.85vh of a 2.04vh period. Their intersections leave small square dots. The tron theme uses #05080d for light_black and #262828 for grey. At a 1080px viewport, the period is about 22px and the dots are about 2px wide. Centering and fractional pixel coverage affect the exact phase and edge pixels.

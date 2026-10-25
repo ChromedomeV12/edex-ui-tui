@@ -47,9 +47,20 @@ def geometry_transform(width,height):
 
 def key_geometry(width,height,state='normal'):
     scale,dx,dy=geometry_transform(width,height)
+    measured_keys=[(key,entry) for keys,row in zip(LAYOUT.values(),GEOMETRY['states'][state])
+                   for key,entry in zip(keys,row)]
+    down=next(entry['rect'] for key,entry in measured_keys
+              if key['name']=='ESCAPED|-- ICON: ARROW_DOWN')
     for keys,measured in zip(LAYOUT.values(),GEOMETRY['states'][state]):
         for key,entry in zip(keys,measured):
             x,y,w,h=entry['rect']
+            if key['name'].startswith('ESCAPED|-- ICON: '):
+                # Correct the source row offset and SVG padding together. Drawing
+                # and mouse routing consume this same adapted geometry.
+                if key['name'].endswith('ARROW_UP'):x=down[0]+(down[2]-w)/2
+                _,_,iw,ih=entry['icon_rect']
+                entry=dict(entry,rect=[x,y,w,h],
+                           icon_rect=[x+(w-iw)/2,y+(h-ih)/2,iw,ih])
             yield (dx+x*scale,dy+y*scale,dx+(x+w)*scale,dy+(y+h)*scale,key,entry)
 
 

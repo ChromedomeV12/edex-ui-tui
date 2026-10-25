@@ -47,6 +47,8 @@ Launch outside an existing tmux session. Allow at least 140 columns by 40 rows. 
 | Ctrl-b then z | Zoom or restore a pane |
 | Ctrl-b then d | Detach; leave the session running |
 
+Showing the keyboard enlarges the lower strip from 30% to 36% of the window height and gives the keyboard 62% of its width. Hiding it restores the file area's height. Keys retain their proportions; Up and Down share a centerline.
+
 From another terminal in the checkout:
 
 ```sh

@@ -8,6 +8,7 @@ import secrets
 import shlex
 import subprocess
 import sys
+import time
 
 ROOT=Path(__file__).resolve().parent
 
@@ -56,11 +57,15 @@ def toggle_keyboard():
     shell=tmux('show-options','-v','-t',session,'@edex-shell')
     files=tmux('show-options','-v','-t',session,'@edex-files')
     token=tmux('show-options','-p','-v','-t',shell,'@edex-input-token')
+    tabs=tmux('show-options','-qv','-t',session,'@edex-tabs')
+    tab_height=tmux('display-message','-p','-t',tabs,'#{pane_height}') if tabs else None
     panes=tmux('list-panes','-a','-F','#{pane_id} #{pane_title} #{window_name}')
     keyboard=next((line.split() for line in panes.splitlines()
                    if line.split()[1:2]==['Keyboard']),None)
     if keyboard and keyboard[2]!='_keyboard':
         tmux('break-pane','-d','-s',keyboard[0],'-n','_keyboard')
+        height=int(tmux('display-message','-p','-t',files,'#{window_height}'))
+        tmux('resize-pane','-t',files,'-y',str(max(1,int(height*.30))))
         tmux('select-pane','-t',shell)
     else:
         if keyboard:pane=keyboard[0]
@@ -68,8 +73,14 @@ def toggle_keyboard():
             pane=tmux('new-window','-d','-t',session,'-n','_keyboard','-P','-F','#{pane_id}',
                       sys.executable,str(ROOT/'keyboard.py'),'--shell-pane',shell,'--token',token)
             tmux('select-pane','-t',pane,'-T','Keyboard')
-        tmux('join-pane','-d','-s',pane,'-t',files,'-h','-l','56%')
+        height=int(tmux('display-message','-p','-t',files,'#{window_height}'))
+        tmux('resize-pane','-t',files,'-y',str(max(1,int(height*.36))))
+        tmux('join-pane','-d','-s',pane,'-t',files,'-h','-l','62%')
         tmux('select-pane','-t',shell)
+    # tmux can take rows from the tab strip when resizing the full-width bottom.
+    if tabs:tmux('resize-pane','-t',tabs,'-y',tab_height)
+    # Even a fast hide/show can clear placeholders without changing final size.
+    tmux('set-option','-t',session,'@edex-layout-revision',str(time.monotonic_ns()))
 
 
 def main():
