@@ -13,16 +13,9 @@ from render import BG,FG,DIM,GRAY,CYAN,MESH,ORDER,font
 from background import surface
 from palette import PRIMARY,blend
 
-# Shared boundary vertices occur in several adjacent tiles. Rotate each unique
-# vertex once, rather than repeating all of the projection math per polygon.
-_vertex_ids={};VERTICES=[];FACES=[]
-for tile in MESH:
-    face=[]
-    for vertex in tile:
-        if vertex not in _vertex_ids:
-            _vertex_ids[vertex]=len(VERTICES);VERTICES.append(vertex)
-        face.append(_vertex_ids[vertex])
-    FACES.append((face,tuple(sum(v[i] for v in tile)/len(tile) for i in range(3))))
+# Almost all source tile vertices are distinct. Project only visible tiles,
+# avoiding a full-sphere temporary point array and a second indexing pass.
+FACES=[(tile,tuple(sum(v[i] for v in tile)/len(tile) for i in range(3))) for tile in MESH]
 GLOBE_INKS=[tuple(round(v*(.2+.8*i/255)) for v in PRIMARY) for i in range(256)]
 
 
@@ -38,9 +31,32 @@ def row_cells(left,right,weights,gap=4):
 @lru_cache(maxsize=512)
 def text_stamp(value,face,ink):
     box=face.getbbox(value)
-    stamp=Image.new('RGBA',(max(1,round(face.getlength(value))+3),max(1,box[3]+3)))
+    stamp=Image.new('RGBA',(max(1,round(text_width(value,face))+3),max(1,box[3]+3)))
     ImageDraw.Draw(stamp).text((0,0),value,font=face,fill=ink)
     return stamp
+
+
+@lru_cache(maxsize=2048)
+def text_width(value,face):
+    return face.getlength(value)
+
+
+@lru_cache(maxsize=1024)
+def fit_text(value,face,available):
+    if text_width(value,face)<=available:return value
+    while value and text_width(value+'…',face)>available:value=value[:-1]
+    return value+'…' if value else ''
+
+
+@lru_cache(maxsize=2)
+def native_globe_inks(mode):
+    # This is ImageDraw.polygon's own color conversion and C primitive. Keep
+    # the public polygon path below for Pillow versions without that interface.
+    if mode not in ('RGB','RGBA'):return None
+    try:
+        probe=ImageDraw.Draw(Image.new(mode,(1,1)))
+        return tuple(probe._getink(ink)[0] for ink in GLOBE_INKS)
+    except (AttributeError,TypeError):return None
 
 
 def draw_globe(d,width,height,elapsed):
@@ -52,13 +68,21 @@ def draw_globe(d,width,height,elapsed):
     ax=ca*radius;az=sa*radius
     bx=sa*st*radius;by=ct*radius;bz=-ca*st*radius
     dx=-sa*ct;dy=st;dz=ca*ct
-    projected=[(cx+x*ax+z*az,cy-(x*bx+y*by+z*bz)) for x,y,z in VERTICES]
+    inks=native_globe_inks(d.mode)
+    polygon=getattr(getattr(d,'draw',None),'draw_polygon',None) if inks is not None else None
     for face,(x,y,z) in FACES:
         depth=x*dx+y*dy+z*dz
         if depth>0:
             # Front-face tiles don't overlap in orthographic projection. Draw
             # only their outlines, not a redundant opaque fill and depth sort.
-            d.polygon([projected[i] for i in face],outline=GLOBE_INKS[min(255,round(depth*255))])
+            points=[(cx+x*ax+z*az,cy-(x*bx+y*by+z*bz)) for x,y,z in face]
+            index=min(255,round(depth*255))
+            if polygon is not None:
+                try:
+                    polygon(points,inks[index],0,1)
+                    continue
+                except (AttributeError,TypeError):polygon=None
+            d.polygon(points,outline=GLOBE_INKS[index])
 
 
 def curve_points(values,timestamps,now,box,maximum=100,pixels_per_second=20):
@@ -100,10 +124,7 @@ def render_column(kind,width,height,data,elapsed,now=None,*,raster=False):
         if image.mode == 'RGBA':image.alpha_composite(stamp,(round(x),round(y)))
         else:image.paste(stamp,(round(x),round(y)),stamp)
     def fit(value,face,available):
-        value=str(value)
-        if face.getlength(value)<=available:return value
-        while value and face.getlength(value+'…')>available:value=value[:-1]
-        return value+'…' if value else ''
+        return fit_text(str(value),face,available)
     def rule(y):
         d.line((left,y,right,y),fill=DIM)
         d.line((left,y-4,left,y+3),fill=DIM);d.line((right,y-4,right,y+3),fill=DIM)
@@ -112,9 +133,9 @@ def render_column(kind,width,height,data,elapsed,now=None,*,raster=False):
         label=fit(label,normal,(right-left)*(.6 if detail else 1))
         text(left+3,y+4,label)
         if detail:
-            available=max(0,right-left-3-normal.getlength(label)-12)
+            available=max(0,right-left-3-text_width(label,normal)-12)
             detail=fit(detail,small,available)
-            text(right-small.getlength(detail),y+5,detail,GRAY,small)
+            text(right-text_width(detail,small),y+5,detail,GRAY,small)
     def graph(values,box,maximum=100,ink=FG):
         stamps=data.get('sample_times',[now-len(values)+1+i for i in range(len(values))])
         points=curve_points(values,stamps,now,box,maximum)
@@ -125,7 +146,7 @@ def render_column(kind,width,height,data,elapsed,now=None,*,raster=False):
         wall_clock=datetime.datetime.now()
         clock=wall_clock.strftime('%H : %M : %S')
         clockfont=font(max(15,round(unit*4)),'light')
-        text((width-d.textlength(clock,font=clockfont))/2,height*.035,clock,f=clockfont)
+        text((width-text_width(clock,clockfont))/2,height*.035,clock,f=clockfont)
         y=height*.135;rule(y)
         seconds=int(data['uptime']);uptime=f'{seconds//3600}:{seconds//60%60:02d}'
         fields=[(wall_clock.strftime('%Y'),wall_clock.strftime('%b %d').upper()),('UPTIME',uptime),
@@ -183,7 +204,7 @@ def render_column(kind,width,height,data,elapsed,now=None,*,raster=False):
                     f"{process['memory']:.1f}%")
             for index,((x0,x1),value) in enumerate(zip(process_cells,values)):
                 value=fit(value,small,x1-x0)
-                x=x1-small.getlength(value) if index>=2 else x0
+                x=x1-text_width(value,small) if index>=2 else x0
                 text(x,yy,value,f=small,max_width=x1-x)
     else:
         heading(3,'PANEL','NETWORK')

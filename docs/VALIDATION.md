@@ -89,3 +89,11 @@ The resize pass adds layout.py, called by the existing tab worker on window or c
 We inspected corrected 160x40 and restored 209x49 Omarchy captures. Both side columns retain 17% width and the tab artwork retains enough rows. The supported resize tests use a logical tmux window inside the same Kitty client; a desktop/client resize and another font scale remain separate checks.
 
 The launcher now passes opt-in 24/30/48/60 targets to newly created instrument workers; the default stays 24. The prior renderer silently capped requests at 30. Its optional developer reports now include submission intervals and achieved submission rate, without claiming display presentation. The [performance record](PERFORMANCE.md) lists the four-target trial and its limits. We restored 24 FPS and preserved the native shell after that trial.
+
+### Raster optimization checks
+
+The optimization tests retain the previous full-sphere projection and public polygon path as a reference. They compare bytes at six animation times, two sizes and both RGB/RGBA modes. They also exercise the public fallback and a simulated incompatible Pillow primitive. Complete system/network frames match the uncached public path with a fixed clock in both solid and dotted presets. Font-fitting checks retain the previous results for empty strings, narrow bounds and Unicode text.
+
+Both full distro suites passed with the new tests: Omarchy uses Pillow 12.3 and Ubuntu uses Pillow 10.2. CI now runs the optimization checks. The source still targets the same fonts, colors, geometry and animation timing; no dependency changed. See [performance](PERFORMANCE.md) for the shuffled CPU measurements and the internal-Pillow compatibility tradeoff.
+
+We repeated the live 24/30/48/60 comparison in reverse order after optimization. The 24 target submitted 23.86 FPS for System and 23.48 for Network at 93.59% of one core across the selected process groups. The 30 target submitted 29.28 and 28.66 FPS at 116.17%. Higher targets remained below their requested rates. We restored 24 and preserved the native shell; the later Omarchy capture showed both instruments, frame, tabs, Yazi and keyboard. Keep longer stability, actual client/font-scale checks and native-hardware performance open.
