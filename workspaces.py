@@ -2,16 +2,20 @@
 import argparse
 import contextlib
 import fcntl
+import hashlib
 import os
 from pathlib import Path
 import shlex
 import sys
-from launch import tmux,ROOT
+from launch import tmux,ROOT,SOCKET,binding_command,sync_server_env
 
 
 @contextlib.contextmanager
 def lock():
-    path=Path(os.environ.get('XDG_RUNTIME_DIR','/tmp'))/f'edex-terminal-{os.getuid()}.workspaces.lock'
+    # One lock per tmux server: different sockets own separate session state,
+    # and the hash keeps the filename safe for any EDEX_TMUX_SOCKET value.
+    digest=hashlib.sha256(SOCKET.encode()).hexdigest()[:16]
+    path=Path(os.environ.get('XDG_RUNTIME_DIR','/tmp'))/f'edex-terminal-{os.getuid()}-{digest}.workspaces.lock'
     fd=os.open(path,os.O_CREAT|os.O_RDWR|os.O_NOFOLLOW,0o600)
     try:
         if os.fstat(fd).st_uid!=os.getuid():raise PermissionError('Workspace lock owner mismatch')
@@ -25,6 +29,7 @@ def option(name):
 
 def install():
     with lock():
+        sync_server_env()
         if option('@edex-tabs'):return
         shell=option('@edex-shell')
         tmux('set-option','-t','edex','@edex-slot-1',shell)
@@ -35,7 +40,7 @@ def install():
         tmux('set-option','-t','edex','@edex-tabs',pane)
         tmux('select-pane','-t',pane,'-T','Shell tabs')
         for slot in range(1,6):
-            command=shlex.join([sys.executable,str(ROOT/'workspaces.py'),str(slot)])
+            command=binding_command(shlex.join([sys.executable,str(ROOT/'workspaces.py'),str(slot)]))
             tmux('bind-key',str(slot),'run-shell',command)
         tmux('select-pane','-t',shell)
 

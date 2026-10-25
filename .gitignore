@@ -13,3 +13,4 @@ Thumbs.db
 *.log
 captures/
 local/
+omp-session-*.html

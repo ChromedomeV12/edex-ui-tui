@@ -167,6 +167,13 @@
       "source": "src/classes/keyboard.class.js",
       "adaptation": "Four original inline SVG arrow icons retained unchanged",
       "source_sha256": "a5a940e2f2e05dbad3e90b50171d915770d8a580c029db20aa31f7cc75013d38"
+    },
+    {
+      "path": "border_frame.py",
+      "source": "https://cdn.jsdelivr.net/npm/augmented-ui@1.1.2/augmented.css",
+      "source_sha256": "4b1b5590c90059843e7f91ab69a37cf4ca0505c92e272868f8d9e5c86cf3d256",
+      "license": "BSD-2-Clause",
+      "adaptation": "Legacy tr-clip/bl-clip outer and inner border polygons, with 15px clips; rasterized into transparent terminal gutters. Matches eDEX markup, not the fork's incompatible augmented-ui 2.0.0 lock entry. Copyright and full license retained in NOTICE.md."
     }
   ]
 }

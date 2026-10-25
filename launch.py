@@ -10,7 +10,25 @@ import subprocess
 import sys
 
 ROOT=Path(__file__).resolve().parent
-SOCKET='edex-terminal-'+str(os.getuid() if hasattr(os,'getuid') else 'test')
+
+SOCKET=os.environ.get('EDEX_TMUX_SOCKET') or 'edex-terminal-'+str(os.getuid() if hasattr(os,'getuid') else 'test')
+
+
+def binding_command(command):
+    # Keep the selected socket in bound commands so server-launched children
+    # (key bindings, workspace switching) resolve this server instead of the
+    # per-uid default socket.
+    if os.environ.get('EDEX_TMUX_SOCKET'):
+        return 'EDEX_TMUX_SOCKET='+shlex.quote(SOCKET)+' '+command
+    return command
+
+
+def sync_server_env():
+    # Keep the selected socket in the server's session environment so children
+    # the server launches inherit it: key binding subprocesses, workspace
+    # switching and keyboard management.
+    if os.environ.get('EDEX_TMUX_SOCKET'):
+        tmux('set-environment','-t','edex','EDEX_TMUX_SOCKET',SOCKET)
 
 
 def tmux(*args):
@@ -20,6 +38,7 @@ def tmux(*args):
 
 def toggle_keyboard():
     session='edex'
+    sync_server_env()
     shell=tmux('show-options','-v','-t',session,'@edex-shell')
     files=tmux('show-options','-v','-t',session,'@edex-files')
     token=tmux('show-options','-p','-v','-t',shell,'@edex-input-token')
@@ -51,7 +70,7 @@ def main():
     p.add_argument('--cwd',default=os.getcwd());args=p.parse_args()
     if not shutil.which('tmux'):p.error('Install tmux first')
     if args.stop:
-        tmux('kill-session','-t','edex');return
+        tmux('kill-session','-t','=edex');return
     if args.toggle_keyboard:
         toggle_keyboard();return
     if args.install_switcher:
@@ -65,20 +84,27 @@ def main():
             try:ImageFont.truetype(str(option),16)
             except OSError:p.error(f'Cannot read font: {option}; supply a supported TTF/OTF file')
             os.environ[var]=str(option.resolve())
-    existing=subprocess.run(['tmux','-L',SOCKET,'has-session','-t','edex'],capture_output=True).returncode==0
+    existing=subprocess.run(['tmux','-L',SOCKET,'has-session','-t','=edex'],capture_output=True).returncode==0
     if not existing:
         cols,rows=shutil.get_terminal_size((180,55))
         if cols<140 or rows<40:p.error('Prototype layout needs at least 140 columns by 40 rows')
         if not args.skip_intro and not args.detach:
             from boot import play
             play()
-        shell=tmux('new-session','-d','-s','edex','-c',str(Path(args.cwd).resolve()),
-                   '-x',str(cols),'-y',str(rows),'-P','-F','#{pane_id}')
+        new_session_args=['-d','-s','edex','-c',str(Path(args.cwd).resolve()),
+                          '-x',str(cols),'-y',str(rows),'-P','-F','#{pane_id}']
+        if os.environ.get('EDEX_TMUX_SOCKET'):
+            # Give the first shell the selected socket explicitly: on an
+            # existing server the new session's environment comes from the
+            # server, not from this client.
+            new_session_args=['-e','EDEX_TMUX_SOCKET='+SOCKET,*new_session_args]
+        shell=tmux('new-session',*new_session_args)
         tmux('select-pane','-t',shell,'-T','Shell')
         token=secrets.token_hex(24)
         tmux('set-option','-p','-t',shell,'@edex-input-token',token)
         tmux('set-option','-t','edex','@edex-shell',shell)
-        keyboard_cmd=shlex.join([sys.executable,str(ROOT/'launch.py'),'--toggle-keyboard'])
+        sync_server_env()
+        keyboard_cmd=binding_command(shlex.join([sys.executable,str(ROOT/'launch.py'),'--toggle-keyboard']))
         tmux('bind-key','K','run-shell',keyboard_cmd)
         def instrument(kind,target,orientation,percentage,before=False):
             cmd=['split-window','-d','-t',target,orientation,'-l',percentage,'-P','-F','#{pane_id}']
@@ -101,6 +127,10 @@ def main():
             tmux('select-pane','-t',shell)
         except Exception:
             tmux('kill-session','-t','edex');raise
+    if existing:
+        # Repair the session environment of a pre-existing session so children
+        # the server spawns after attach inherit the selected socket.
+        sync_server_env()
     if args.detach:
         print('Created isolated session. Attach: tmux -L '+SOCKET+' attach -t edex');return
     os.execvp('tmux',['tmux','-L',SOCKET,'attach-session','-t','edex'])

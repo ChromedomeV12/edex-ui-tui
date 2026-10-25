@@ -9,6 +9,7 @@ import time
 import zlib
 from metrics import Metrics
 from columns import render_column
+from launch import SOCKET
 
 
 def summary(values):
@@ -30,8 +31,7 @@ def main():
     parser.add_argument('--frames',type=int,default=24)
     args=parser.parse_args()
     if not 1<=args.seconds<=60 or not 5<=args.frames<=120:parser.error('seconds 1..60, frames 5..120')
-    socket='edex-terminal-'+str(os.getuid())
-    raw=subprocess.run(['tmux','-L',socket,'list-panes','-a','-F',
+    raw=subprocess.run(['tmux','-L',SOCKET,'list-panes','-a','-F',
                         '#{pane_pid}|#{pane_title}'],check=True,capture_output=True,text=True).stdout
     panes=[(int(line.split('|',1)[0]),line.split('|',1)[1]) for line in raw.splitlines()]
     before={pid:counters(pid) for pid,_ in panes};started=time.monotonic()

@@ -86,7 +86,7 @@ The browser keeps its own directory. It does not change shell directories. The o
 
 ## What needs work
 
-The current tmux borders lack eDEX’s clipped corners. We plan to test Kitty relative placements in reserved gutters on the `experiment/kitty-borders` branch. Main retains the reviewed interface.
+The normal layout still uses tmux borders without eDEX’s clipped corners. The `experiment/kitty-borders` branch has a standalone one-shell prototype using Kitty relative placements and upstream-derived contours. See the [border experiment](docs/BORDER-EXPERIMENT.md) for commands, measurements, and limits. Main retains the reviewed interface.
 
 Rajdhani approximates the upstream typography. We do not distribute United Sans or claim an exact movie-font match. We also have gaps in startup choreography, audio, and other upstream effects.
 

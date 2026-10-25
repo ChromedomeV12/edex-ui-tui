@@ -249,4 +249,73 @@ Image(Stream(),image_id=int(sys.argv[2]),tmux=False).pixels(bytes(range(256))*40
             self.assertEqual(starts,2);self.assertFalse(ongoing)
 
 
+class BorderFrameTests(unittest.TestCase):
+    def _alpha(self,image):
+        return image.getchannel('A')
+
+    def _components(self,image):
+        # 8-connected components of the alpha>=8 pixels; the threshold
+        # ignores insignificant anti-aliasing tails
+        buf=self._alpha(image).tobytes();w,h=image.size
+        total=[i for i in range(w*h) if buf[i]>=8]
+        if not total:return 0,0
+        seen={total[0]};frontier=[total[0]]
+        while frontier:
+            y,x=divmod(frontier.pop(),w)
+            for ny in range(y-1 if y else 0,min(y+2,h)):
+                for nx in range(x-1 if x else 0,min(x+2,w)):
+                    j=ny*w+nx
+                    if buf[j]>=8 and j not in seen:
+                        seen.add(j);frontier.append(j)
+        return len(seen),len(total)
+
+    def _corners(self,image,height):
+        # top-right and bottom-left are 15px clipped: the bbox corner cells stay
+        # transparent and a diagonal joins the two bars; top-left and bottom-right
+        # are square, so the contour reaches those bbox corners
+        s=max(1,int(height*0.0018+0.5))  # 0.18vh stroke convention
+        a=self._alpha(image);l,t,r,b=a.getbbox()
+        self.assertGreater(a.getpixel((l,t)),0)
+        self.assertGreater(a.getpixel((r-1,b-1)),0)
+        self.assertEqual(a.getpixel((r-1,t)),0)
+        self.assertEqual(a.getpixel((l,b-1)),0)
+        tr=[(x,y)for y in range(t,t+16)for x in range(r-16,r)if a.getpixel((x,y))]
+        self.assertTrue(any(x<r-s and y>t+s for x,y in tr))
+        bl=[(x,y)for y in range(b-16,b)for x in range(l,l+16)if a.getpixel((x,y))]
+        self.assertTrue(any(x>l+s and y<b-s for x,y in bl))
+
+    def test_frame_is_closed_contour_on_normal_viewport(self):
+        from border_frame import render_frame
+        image=render_frame(1800,1000,(20,80,1780,920))
+        self.assertEqual((image.size,image.mode),((1800,1000),'RGBA'))
+        # shell interior stays fully transparent
+        self.assertIsNone(image.crop((20,80,1780,920)).getchannel('A').getbbox())
+        reached,total=self._components(image)
+        self.assertEqual(reached,total)
+        self._corners(image,1000)
+
+    def test_frame_keeps_shell_clear_on_tight_viewport(self):
+        from border_frame import render_frame
+        image=render_frame(300,1000,(30,10,270,990))
+        self.assertEqual((image.size,image.mode),((300,1000),'RGBA'))
+        self.assertIsNone(image.crop((30,10,270,990)).getchannel('A').getbbox())
+        reached,total=self._components(image)
+        self.assertEqual(reached,total)
+        self._corners(image,1000)
+
+    def test_frame_clamps_into_small_gutters_without_covering_shell(self):
+        from border_frame import render_frame
+        image=render_frame(200,1000,(2,1,199,999))
+        self.assertEqual((image.size,image.mode),((200,1000),'RGBA'))
+        a=self._alpha(image)
+        self.assertIsNone(image.crop((2,1,199,999)).getchannel('A').getbbox())
+        # the canvas is the viewport, so any stroke is within it; the frame
+        # must still be drawn when gutters are narrower than the stroke
+        self.assertIsNotNone(a.getbbox())
+        reached,total=self._components(image)
+        self.assertEqual(reached,total)
+        # every gutter zero: no frame at all
+        empty=render_frame(200,1000,(0,0,200,1000))
+        self.assertIsNone(empty.getchannel('A').getbbox())
+
 if __name__=='__main__':unittest.main()

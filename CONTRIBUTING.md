@@ -21,6 +21,8 @@ We keep runtime modules at the root so the launcher and pane subprocesses share 
 
 ## Test changes
 
+Give one contributor ownership of each runtime path during a change. Agree on interfaces before splitting launcher and renderer work, and write the final usage guide after the interface settles. Run focused tests while editing, then the full suite at the integration checkpoint. Keep agent session exports and private captures outside the source tree.
+
 Run from the repository root on Linux:
 
 ```sh
@@ -34,6 +36,8 @@ For visual changes, launch a separate session and inspect startup, steady motion
 ## Keep the working baseline
 
 Branch from main. Work on border experiments in `experiment/kitty-borders` and a separate checkout. Keep the default layout until screenshots and interaction tests support a change. Do not test against a live user's shell or the physical Omarchy machine without authorization.
+
+Run border experiments from a separate guest checkout in a separate desktop Kitty window outside tmux. Set `EDEX_TMUX_SOCKET` to a unique name for the launcher, controls, and profiler. Unset or empty selects the baseline socket, `edex-terminal-<uid>`; there is no inference from `TMUX`. Newly launched server children inherit the selector, but existing shells keep their spawn-time environment. Supply the variable on commands from outside the experiment or from older shells. Workspace locks are socket-scoped; graphics serialization stays global per uid. See docs/BORDER-EXPERIMENT.md for commands and teardown.
 
 Preserve native shell behavior and the optional keyboard. Keep graphics placement IDs stable across heartbeats, serialize multipart transfers, and repaint placeholder cells for initialization or recovery. Use functional labels and real metrics. Document missing data rather than inventing endpoints or locations.
 
