@@ -47,3 +47,5 @@ Preserve native shell behavior and the optional keyboard. Keep graphics placemen
 Explain the user-visible problem, your change, and the checks you ran. Include sanitized before/after images for layout changes. Remove hostnames, IP addresses, personal paths, file listings, and shell history from evidence. Keep capture logs, virtual environments, private fonts, and credentials out of Git.
 
 Retain upstream notices and record new copied assets in UPSTREAM.json with their origin and hashes. Do not submit commercial fonts. By submitting a contribution, you agree to distribute your contribution under this project's GPL-3.0 terms, subject to existing third-party notices. We do not require a separate contributor agreement.
+
+In UPSTREAM.json, sha256 identifies the bundled file's bytes. Use source_sha256 for the original pinned upstream file when extracting a subset or changing formatting, and describe the adaptation. The provenance test checks declared bundled hashes offline; verifying new source hashes still requires the pinned upstream content. Reformatting JSON changes its byte hash even when its parsed values stay the same.

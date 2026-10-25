@@ -30,9 +30,11 @@ Use Linux with Kitty graphics support. We reviewed the current interface in a di
 
 On Arch or Omarchy:
 
+The current preview lives on experiment/kitty-borders; main retains the earlier baseline. Clone the preview branch for the features and options documented here.
+
 ```sh
 sudo pacman -S --needed kitty tmux python-pillow yazi librsvg ttf-dejavu
-git clone https://github.com/ChromedomeV12/edex-ui-tui.git
+git clone --branch experiment/kitty-borders https://github.com/ChromedomeV12/edex-ui-tui.git
 cd edex-ui-tui
 kitty --config "$PWD/kitty.conf" python3 "$PWD/launch.py" --cwd "$HOME" --graphics-transport tempfile
 ```
@@ -60,6 +62,8 @@ python3 launch.py --stop
 Use `--skip-intro` to skip startup. `--files auto|yazi|superfile|preview` selects navigation; the custom icon grid needs Yazi and librsvg. For other Python environments, install [requirements.txt](requirements.txt) in a virtual environment. Supply your own licensed fonts with `--display-font` and `--light-font`; we bundle Rajdhani under the OFL.
 
 Animations target 24 FPS by default. For a new session, `--fps 30`, `--fps 48` or `--fps 60` opts into a higher target. Reattaching an existing session keeps its workers' current target. Higher targets cost more CPU and do not guarantee that Kitty presents that many frames. Read the [performance checks](docs/PERFORMANCE.md) before choosing one.
+
+After updating the checkout, existing Python workers keep their loaded code. Detaching and reattaching does not reload them. Finish your shell work before using `--stop` and launching a new session; stopping ends this project's shells too.
 
 ## File navigation
 
@@ -104,7 +108,7 @@ The preset keeps the shell opaque and exposes a shared background behind the ins
 
 Omarchy may apply compositor opacity even when Kitty requests an opaque window. On its Lua-based configuration, an optional app rule is `o.window("^edex-ui-tui$", { tag = "-default-opacity", opacity = "1 1" })`. Review your installed configuration before adding it. The project launcher does not edit compositor settings or normal terminal profiles.
 
-The normal layout still uses tmux borders without eDEX’s clipped corners. The `experiment/kitty-borders` branch has a standalone one-shell prototype using Kitty relative placements and upstream-derived contours. See the [border experiment](docs/BORDER-EXPERIMENT.md) for commands, measurements, and limits. Main retains the reviewed interface.
+The normal layout uses tmux borders. The experiment integrates the clipped frame into the full layout using the tab image as its anchor. See the [border experiment](docs/BORDER-EXPERIMENT.md) for commands, measurements, and limits. Main retains the earlier interface.
 
 Rajdhani approximates the upstream typography. We do not distribute United Sans or claim an exact movie-font match. We also have gaps in startup choreography, audio, and other upstream effects.
 

@@ -68,3 +68,14 @@ We repeated the VM trial with the optimized workers in reverse order: 60, 48, 30
 At the 24 target, the new trial used 93.59% of one core versus 139.92% in the earlier trial and submitted closer to the requested rate. The shuffled CPU microbenchmarks support a rendering improvement, but the two live sequences happened at different times on a shared host. Treat the totals as VM observations rather than a portable percentage-saving claim.
 
 Use 30 as the next opt-in candidate for longer stability and native-hardware tests. Both instruments approached that target, while 48 and 60 still fell short. Keep 24 as the release baseline until those further checks support changing it. We restored the review workers to 24, kept the native shell PID and inspected the interface afterward. These trials still do not measure Kitty presentation or monitor scanout.
+
+### Five-minute phases at 30 and 24
+
+We followed the short trial with two consecutive five-minute phases in the same Omarchy review. Each phase used an eight-second warm-up and 15-second process snapshots. We restarted only the instrument workers between targets and restored uninstrumented 24 FPS workers afterward. The native shell survived both transitions.
+
+| Target | Duration, seconds | System submitted FPS | Network submitted FPS | CPU, percent of one core | Summed RSS first / last / peak, MiB |
+| --- | --- | --- | --- | --- | --- |
+| 30 | 301.19 | 29.30 | 28.71 | 112.81 | 561.49 / 566.53 / 566.53 |
+| 24 | 301.17 | 23.73 | 23.47 | 96.86 | 561.90 / 565.50 / 565.50 |
+
+The selected pane PIDs stayed unchanged within each phase. The sampled shared graphics temporary-file pool peaked at six files in each phase; that pool includes other project images in the VM and does not isolate each worker. RSS includes shared pages more than once. CPU excludes compositor/GPU work, and the host also ran WSLg. These observations support keeping 30 available as an opt-in target. Keep 24 as the default pending native-hardware checks and longer runs. Submission rates do not measure displayed frame pacing.

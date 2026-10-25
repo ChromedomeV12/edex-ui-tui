@@ -96,4 +96,20 @@ The optimization tests retain the previous full-sphere projection and public pol
 
 Both full distro suites passed with the new tests: Omarchy uses Pillow 12.3 and Ubuntu uses Pillow 10.2. CI now runs the optimization checks. The source still targets the same fonts, colors, geometry and animation timing; no dependency changed. See [performance](PERFORMANCE.md) for the shuffled CPU measurements and the internal-Pillow compatibility tradeoff.
 
-We repeated the live 24/30/48/60 comparison in reverse order after optimization. The 24 target submitted 23.86 FPS for System and 23.48 for Network at 93.59% of one core across the selected process groups. The 30 target submitted 29.28 and 28.66 FPS at 116.17%. Higher targets remained below their requested rates. We restored 24 and preserved the native shell; the later Omarchy capture showed both instruments, frame, tabs, Yazi and keyboard. Keep longer stability, actual client/font-scale checks and native-hardware performance open.
+We repeated the live 24/30/48/60 comparison in reverse order after optimization. The 24 target submitted 23.86 FPS for System and 23.48 for Network at 93.59% of one core across the selected process groups. The 30 target submitted 29.28 and 28.66 FPS at 116.17%. Higher targets remained below their requested rates. We restored 24 and preserved the native shell; the later Omarchy capture showed both instruments, frame, tabs, Yazi and keyboard. The later checks below cover a longer run and actual client/font changes. Native-hardware performance remains open.
+
+### Actual client resize, font scale and Ubuntu refresh
+
+We resized the Omarchy Kitty window from 1896x1007 to 1600x950 pixels using compositor controls scoped to that window. The attached client changed from 209x49 to 176x46 cells at 9x20 pixels per cell. At 13-point text in the larger window, Kitty reported 188x43 cells at 10x23 pixels per cell. We inspected both captures: instruments, tabs, frame, file grid and keyboard fit their panes. We restored 11-point text and the tiled window, and kept the native shell PID throughout. A private local Kitty control socket existed only for this check. These idle captures do not cover selection or physical touch at the larger font size.
+
+Ubuntu's source copy contained the keyboard changes, but its existing workers still ran the earlier code. We refreshed its keyboard, tab and instrument workers while preserving the native shell and file browser. The keyboard grew from 100x15 to 111x18 cells. A WSLg window capture showed the larger keyboard and aligned Up/Down keys. Copying source files or reattaching a client does not reload an existing Python worker.
+
+### Ten-minute local stability check
+
+We ran the Omarchy review for five minutes at a 30 FPS target, then five minutes at 24, after an eight-second warm-up for each phase. We sampled every 15 seconds. The pane process identities stayed unchanged within both phases, and the original native shell survived the instrument restarts between phases. We restored uninstrumented 24 FPS workers afterward.
+
+At 30, System submitted 29.30 FPS and Network 28.71; at 24, they submitted 23.73 and 23.47. Summed RSS rose by 5.04 MiB and 3.60 MiB within the respective phases. The sampled graphics temporary-file count peaked at six. This check found no worker death or sampled file accumulation; ten minutes does not establish long-term leak freedom. See [performance](PERFORMANCE.md) for CPU accounting and limits.
+
+### Bundled asset provenance
+
+The offline provenance test checks 30 declared files and one derived image. We corrected three manifest hashes to identify bundled bytes and recorded separate source hashes for the reformatted theme/keymap JSON and selected icon map. We compared their parsed values or retained entries with the pinned upstream checkout. No runtime asset content changed. The test passed on Windows, Omarchy and Ubuntu.

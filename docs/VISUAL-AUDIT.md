@@ -29,6 +29,7 @@ The private tmux tests cover 140x40, 160x40, 209x49 and 240x60, hidden keyboard 
 
 ## Remaining release checks
 
-- Inspect a resized Kitty client and a second font scale, including selection and keyboard states.
-- Check longer local-session stability and repeatable performance samples before packaging.
+- We inspected actual 1600x950 and restored 1896x1007 Kitty windows, plus 13-point text at 10x23 cell pixels and restored 11-point text at 9x20. The frame and visible panes fit, and the native shell survived. Selection and keyboard interaction at the second font scale remain open.
+- We inspected Ubuntu's refreshed live workers: its keyboard grew from 100x15 to 111x18 cells with aligned Up/Down keys. Earlier source/tests alone had not refreshed those workers.
+- The ten-minute local run completed at 30 and 24 FPS targets without worker death. Native-hardware performance and longer stability remain open; see [performance](PERFORMANCE.md).
 - Keep SSH/direct-transfer, multiple-client and physical-touch claims outside the first local alpha until their separate checks pass.

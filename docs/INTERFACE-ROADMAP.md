@@ -135,6 +135,10 @@ Keep AUR packaging first in the distribution plan. Mise remains planning only. R
 
 ### Owner's next milestone sequence (2026-10-25)
 
+Checkpoint: we inspected actual Kitty window resizing and a second font scale in Omarchy, then restored the normal window without replacing its native shell. The ten-minute 30/24 FPS run completed without worker death. Ubuntu's live workers now include the larger keyboard and aligned arrows; its earlier source copy had not reloaded those processes. We also added an offline check for 31 bundled artifact hashes. See validation and performance for measurements and limits.
+
+Before the first local alpha, run a clean-checkout launch/stop check, review the package contents and public screenshots, and prepare the Arch/AUR packaging. Review the experiment for merging before tagging a release. Native popup movement/resize occlusion, direct-transfer reattach, multiple clients and physical touch remain limitations; do not claim those paths work in the first release. Keep 24 FPS as the default. Longer runs and native-hardware measurements can inform a later default change.
+
 1. Finish popup open, drag, interaction and close behavior against the security-patched eDEX Modal, modal.css and TopList implementations. Use native terminal controls where they preserve the behavior. Check mouse/touch event routing, focus restoration, clipping during movement, resize, cancellation and child exit. Reproduce only animations present upstream; its custom modal closes with a 100 ms blink.
 2. Audit UI and terminal colors, opacity, shapes, typography and layout ratios against the pinned upstream. Record terminal-cell and hardware constraints, and explain adaptations rather than claiming pixel equivalence. Keep functional labels and existing shell/file-browser behavior.
 3. Run performance checks and validate the current interface on the disposable Ubuntu test distro as well as Omarchy. Include renderer workers, descendants, tmux and Kitty in end-to-end measurements. Keep upstream comparisons controlled, and state display/GPU limitations.

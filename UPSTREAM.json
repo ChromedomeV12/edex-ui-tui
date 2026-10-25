@@ -2,6 +2,7 @@
   "repository": "https://github.com/theelderemo/eDEX-UI-security-patched",
   "commit": "d59e5e287d9ebde8920aaf638ae7e685115c3de4",
   "license": "GPL-3.0",
+  "hash_policy": "sha256 identifies the bundled local_path or path bytes. source_sha256 identifies the original upstream file when the bundled file was reformatted or reduced.",
   "files": [
     {
       "upstream_path": "src/assets/misc/grid.json",
@@ -11,7 +12,9 @@
     {
       "upstream_path": "src/assets/themes/tron.json",
       "local_path": "references/tron.json",
-      "sha256": "56e5fe3e6f4029a7715271c476e09360a9089b298c7bb66b983e685f273e8362"
+      "sha256": "a0f02a45deeea6bdd36743521f68c4b3646709b22030c2feebd50b2b087d1b9d",
+      "source_sha256": "56e5fe3e6f4029a7715271c476e09360a9089b298c7bb66b983e685f273e8362",
+      "adaptation": "JSON formatting changed during extraction; parsed values match upstream"
     },
     {
       "upstream_path": "src/classes/locationGlobe.class.js",
@@ -36,7 +39,9 @@
     {
       "upstream_path": "src/assets/kb_layouts/en-US.json",
       "local_path": "assets/en-US.json",
-      "sha256": "fe51d401d971340138f408152265c2fe63ec19d6223265b6d5b8aa7d22655261"
+      "sha256": "24d6da0e1613083e527455a71a4e6d3ccd657dc2e26b56b87243723ed8d247e7",
+      "source_sha256": "fe51d401d971340138f408152265c2fe63ec19d6223265b6d5b8aa7d22655261",
+      "adaptation": "JSON formatting changed during extraction; parsed values match upstream"
     },
     {
       "upstream_path": "src/assets/misc/boot_log.txt",
@@ -151,7 +156,8 @@
     {
       "upstream_path": "src/assets/icons/file-icons.json",
       "local_path": "assets/file-icons.json",
-      "sha256": "bf9bc40ee04b213d65a161b9f0baaa83f4f0c4cce9b3f7dab2d1e0b9b7d6ec5b",
+      "sha256": "52ff65528d4b4028435da9cd999c95215fbf8c8dc9617f0b82df8ec0502f23b4",
+      "source_sha256": "6ce7fae18753757bf3f9afd61ef6ed2d0f50cc94cf8f67edc63eec7997bbf871",
       "adaptation": "Selected icon entries retained unchanged from upstream map"
     }
   ],
