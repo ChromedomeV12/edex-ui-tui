@@ -2,7 +2,7 @@
   "repository": "https://github.com/theelderemo/eDEX-UI-security-patched",
   "commit": "d59e5e287d9ebde8920aaf638ae7e685115c3de4",
   "license": "GPL-3.0",
-  "hash_policy": "sha256 identifies the bundled local_path or path bytes. source_sha256 identifies the original upstream file when the bundled file was reformatted or reduced.",
+  "hash_policy": "sha256 identifies the bundled local_path or path bytes with repository-enforced line endings. source_sha256 identifies the pinned upstream Git blob when the bundled file differs.",
   "files": [
     {
       "upstream_path": "src/assets/misc/grid.json",
@@ -12,152 +12,148 @@
     {
       "upstream_path": "src/assets/themes/tron.json",
       "local_path": "references/tron.json",
-      "sha256": "a0f02a45deeea6bdd36743521f68c4b3646709b22030c2feebd50b2b087d1b9d",
-      "source_sha256": "56e5fe3e6f4029a7715271c476e09360a9089b298c7bb66b983e685f273e8362",
-      "adaptation": "JSON formatting changed during extraction; parsed values match upstream"
+      "sha256": "a0f02a45deeea6bdd36743521f68c4b3646709b22030c2feebd50b2b087d1b9d"
     },
     {
       "upstream_path": "src/classes/locationGlobe.class.js",
       "local_path": "references/locationGlobe.class.js",
-      "sha256": "b7637421bb65c9950e3185a02936e5712d7c6b8aa11e1fb404736727fcbf04e1"
+      "sha256": "887586e1ae0f2fca38f7073c02bff45e4872fa32610a4b7a32566f252ade3f80"
     },
     {
       "upstream_path": "src/classes/ramwatcher.class.js",
       "local_path": "references/ramwatcher.class.js",
-      "sha256": "e7a76078c8133f23427b89572dbeef62469eaeb77807f30cac5d17d3c7cfc642"
+      "sha256": "37a2e364149e54460873df0e9538b694ff04666f81122ed9eb51245a0f120d30"
     },
     {
       "upstream_path": "src/classes/cpuinfo.class.js",
       "local_path": "references/cpuinfo.class.js",
-      "sha256": "a56553895d966fee39d732776cc1050f1f7daccd68366c888bf1ed9ce386b75a"
+      "sha256": "4db779b78f54486b6b5278dcf2cd8dcc86d963ebc02f3c0e3f651585166f85bf"
     },
     {
       "upstream_path": "src/classes/conninfo.class.js",
       "local_path": "references/conninfo.class.js",
-      "sha256": "d796c54a2362e8aa26d2e4b1f957ca2891dc3258b8d413d0ed7d66e9c24eb2a9"
+      "sha256": "4195b8810deb3ec0893f43f256e77a072bd189b81cf9d2335138c9c77d2d59bf"
     },
     {
       "upstream_path": "src/assets/kb_layouts/en-US.json",
       "local_path": "assets/en-US.json",
-      "sha256": "24d6da0e1613083e527455a71a4e6d3ccd657dc2e26b56b87243723ed8d247e7",
-      "source_sha256": "fe51d401d971340138f408152265c2fe63ec19d6223265b6d5b8aa7d22655261",
-      "adaptation": "JSON formatting changed during extraction; parsed values match upstream"
+      "sha256": "24d6da0e1613083e527455a71a4e6d3ccd657dc2e26b56b87243723ed8d247e7"
     },
     {
       "upstream_path": "src/assets/misc/boot_log.txt",
       "local_path": "assets/boot_log.txt",
-      "sha256": "59962be2444ac9feafeae579975b46ba856ecb595d5680c113ed856bb91ea291"
+      "sha256": "bbb737c72730311714ad1c0680cf4c39914204c3b4ba0dbef6a8beb1886ad12e"
     },
     {
       "upstream_path": "src/_renderer.js",
       "local_path": "references/_renderer.js",
-      "sha256": "4b8013d372b5421185ec871da1aa4e1bdaf5b6e852ad336dc52d8cddfa693856"
+      "sha256": "093bc1524cd759e3e387e8a088f6bbb69e51099ab9834380186ef307f1acf36a"
     },
     {
       "upstream_path": "src/assets/css/boot_screen.css",
       "local_path": "references/css/boot_screen.css",
-      "sha256": "d62c72555388e0fa16e1834c316fc29fe086b988895de01abfc48efd1866fe71"
+      "sha256": "047ff9b1af168bffd841c901b4689e465530b4707288e85b6201b36e148f6111"
     },
     {
       "upstream_path": "src/assets/css/extra_ratios.css",
       "local_path": "references/css/extra_ratios.css",
-      "sha256": "6333492a5d2436c7800934060b63698452de9fe6c2d8b3bb8b5bc15ddad85ff1"
+      "sha256": "93f17a0378617d4e0cf9032d2a92effd8df7de620a690e867b6e43e76aada8ab"
     },
     {
       "upstream_path": "src/assets/css/filesystem.css",
       "local_path": "references/css/filesystem.css",
-      "sha256": "82e0f822fecbc2076494711a2bdc90f4f331cac189c46dc0f177df7d372b556d"
+      "sha256": "69a189e97059b10488662b2e57812269e2254eddacf8818ab4114fa4c0e8ed78"
     },
     {
       "upstream_path": "src/assets/css/keyboard.css",
       "local_path": "references/css/keyboard.css",
-      "sha256": "082393a198afc958ac7b0385cfa168af8cfae0ad0a946f280c89dfb6ce18744b"
+      "sha256": "e2b13ad7e863187b2d494b4cbc88c859a522a3f68f2277c4b95aad970fb0ef0b"
     },
     {
       "upstream_path": "src/assets/css/main.css",
       "local_path": "references/css/main.css",
-      "sha256": "a39d57429f57e4d861bbbbfa58ccac79ad45b4c17651074d4093c51436cccf49"
+      "sha256": "76162cae5d26abde18f684ae6c1b8a4fc7174032d7cd551bda34238c3cd63883"
     },
     {
       "upstream_path": "src/assets/css/main_shell.css",
       "local_path": "references/css/main_shell.css",
-      "sha256": "79cc5aa15f3d7def1e5bd41b86a1bd3fac5987165ea05494ccc1c6c161c7eabd"
+      "sha256": "ba604da79901754bcb8375e890376f79e2ad33e3fbc061eaa437d95169d3c784"
     },
     {
       "upstream_path": "src/assets/css/media_player.css",
       "local_path": "references/css/media_player.css",
-      "sha256": "d3136b535aa567610bda1b723b3e43d5ae406103076a1ac7dd5dfa8b27ab2f31"
+      "sha256": "5a2b0689e6cc516ffd66c95e80554e250c1deac796ab7f44e0362c7db16420e5"
     },
     {
       "upstream_path": "src/assets/css/modal.css",
       "local_path": "references/css/modal.css",
-      "sha256": "f69f711d10385e31e18b655bdd9f5203cedff6152b971e74787910c3bcd93394"
+      "sha256": "af728a05120fcabf6837a6620646f7a5e4f6acd1859bfbb8f423503cb41e06dd"
     },
     {
       "upstream_path": "src/assets/css/mod_clock.css",
       "local_path": "references/css/mod_clock.css",
-      "sha256": "cb72b78aaea9d4886c4c6ed7d8830c52c43684e2b0974e0c804b7efb7fcebf10"
+      "sha256": "ed38abd19ab22c017696e37a94449819f97d928d06f21a534b5feead40d9b9fd"
     },
     {
       "upstream_path": "src/assets/css/mod_column.css",
       "local_path": "references/css/mod_column.css",
-      "sha256": "d1eae598a9e8018e2378f5d39717f6ad60d6449cfe62a7672d80aa3b0f142cc4"
+      "sha256": "378f0d86f4132dc2f44f79bf30e54ad2151638b69dd82d195f694431bfdd1645"
     },
     {
       "upstream_path": "src/assets/css/mod_conninfo.css",
       "local_path": "references/css/mod_conninfo.css",
-      "sha256": "a1af2d1f9954bb443dff8c2f6b72ef1fbeecdd1617e50778ca0947f05cead12a"
+      "sha256": "f89603b9a0c44c0702099623729418d4ed294cb35ac88a5914984468197cf07c"
     },
     {
       "upstream_path": "src/assets/css/mod_cpuinfo.css",
       "local_path": "references/css/mod_cpuinfo.css",
-      "sha256": "ee2a9e13c7f7e11338d321e694c795cdf8b66c516b0ed6b6a5620bfa70aa28d6"
+      "sha256": "cefba8ab86df926375410f1b02d094ddf132605fa06d180fbb83849613076f29"
     },
     {
       "upstream_path": "src/assets/css/mod_fuzzyFinder.css",
       "local_path": "references/css/mod_fuzzyFinder.css",
-      "sha256": "8acaaf5cbcb0eda42bef4dcacb9fd5cd8989eef85eb48b69aa75c162c10a607c"
+      "sha256": "01b4bdfa30297418ef16c0bfe18ef92c98782c5f3f24380da2492bbf97854427"
     },
     {
       "upstream_path": "src/assets/css/mod_globe.css",
       "local_path": "references/css/mod_globe.css",
-      "sha256": "7c7c9c1a269902efa38de3662ee2b9b7eddb142cea76bb9b6125a97e61429c28"
+      "sha256": "25c0b0153f95ea98b85d4c82c89cedd07a9054666df5d3a3d4b6fda0cc8d358e"
     },
     {
       "upstream_path": "src/assets/css/mod_hardwareInspector.css",
       "local_path": "references/css/mod_hardwareInspector.css",
-      "sha256": "bbd5129be5190baccaafedcf69175a350587225de45e6fdbe3367526d2763603"
+      "sha256": "8178313b018a2f2eec78d0fb6138d006580957ed83bc0cb1033dfbabb0037e17"
     },
     {
       "upstream_path": "src/assets/css/mod_netstat.css",
       "local_path": "references/css/mod_netstat.css",
-      "sha256": "389d56d4518784a0bf22d335e8eb63ae865dcaa2bc34ec0107b489f3a4956152"
+      "sha256": "b361fee7ba2703a00ae68c1533c29f829c0b7c06fd0a4ef61a163aab21034879"
     },
     {
       "upstream_path": "src/assets/css/mod_processlist.css",
       "local_path": "references/css/mod_processlist.css",
-      "sha256": "b89305f846f9faa8c1b45823d8e196b0c3450f7005ba595f383ec40429975215"
+      "sha256": "17935a9bd7bebcccc960ae09381e43dc9686737c8ec2c17af80ca1f1359df5e1"
     },
     {
       "upstream_path": "src/assets/css/mod_ramwatcher.css",
       "local_path": "references/css/mod_ramwatcher.css",
-      "sha256": "6ce3510a90a876033e883126f1187bad8e59997cb1b52369bc6c1811a03db995"
+      "sha256": "07fd3eaf7695c25349c75c0397c29b9aaaa3ad051750587beb0ad6fefb652eec"
     },
     {
       "upstream_path": "src/assets/css/mod_sysinfo.css",
       "local_path": "references/css/mod_sysinfo.css",
-      "sha256": "09fd1c5ad2de6e9a70bc6afe4871925b57c03ea2ee2ccbd917e0a3f492174830"
+      "sha256": "f57eb992d2402656ce5d7ed256a2f510c72babd46002b334ae04d709bdb0d5d6"
     },
     {
       "upstream_path": "src/assets/css/mod_toplist.css",
       "local_path": "references/css/mod_toplist.css",
-      "sha256": "531ac24db076800385306ff1d53ab7a72031e8608a105a48b76b2bc814920063"
+      "sha256": "a0fa13e197c80b541856084ae9481934712aee37ce2826c2faf90fd63d2c4f52"
     },
     {
       "upstream_path": "src/assets/icons/file-icons.json",
       "local_path": "assets/file-icons.json",
       "sha256": "52ff65528d4b4028435da9cd999c95215fbf8c8dc9617f0b82df8ec0502f23b4",
-      "source_sha256": "6ce7fae18753757bf3f9afd61ef6ed2d0f50cc94cf8f67edc63eec7997bbf871",
+      "source_sha256": "aac7f94c561ff688b93666be11d93966cfeb86b34832d38b0b76c298d3c18681",
       "adaptation": "Selected icon entries retained unchanged from upstream map"
     }
   ],

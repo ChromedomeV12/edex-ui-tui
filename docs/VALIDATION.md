@@ -112,4 +112,8 @@ At 30, System submitted 29.30 FPS and Network 28.71; at 24, they submitted 23.73
 
 ### Bundled asset provenance
 
-The offline provenance test checks 30 declared files and one derived image. We corrected three manifest hashes to identify bundled bytes and recorded separate source hashes for the reformatted theme/keymap JSON and selected icon map. We compared their parsed values or retained entries with the pinned upstream checkout. No runtime asset content changed. The test passed on Windows, Omarchy and Ubuntu.
+The offline provenance test checks 30 declared files and one derived image. Its first run passed on Windows and on copies deployed to Omarchy and Ubuntu, but CI exposed 26 stale hashes: those hashes described CRLF working copies while Git stored LF blobs. Those deployed copies had preserved the Windows endings and missed the clean-checkout failure.
+
+We now enforce LF for JavaScript, CSS and text files, and hash the repository bytes. We compared the bundled files with the pinned upstream Git blobs rather than its working tree. The theme and keymap match upstream bytes; they need no formatting adaptation or separate source hash. The selected icon map retains its adaptation note and the full upstream map's Git-blob hash. We did not change runtime asset values or weaken the byte check.
+
+The corrected check passed in the working tree and in a fresh archive of the staged Git tree, without relying on deployed VM copies.
