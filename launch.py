@@ -15,6 +15,12 @@ ROOT=Path(__file__).resolve().parent
 SOCKET=os.environ.get('EDEX_TMUX_SOCKET') or 'edex-terminal-'+str(os.getuid() if hasattr(os,'getuid') else 'test')
 
 
+def attach_command(session='edex'):
+    # Placeholder IDs use both true-color foreground and underline colors.
+    # Compatible mobile clients may still advertise xterm-256color to SSH.
+    return ['tmux','-L',SOCKET,'-T','RGB,usstyle','attach-session','-t',session]
+
+
 def binding_command(command):
     # Keep the selected socket in bound commands so server-launched children
     # (key bindings, workspace switching) resolve this server instead of the
@@ -184,7 +190,7 @@ def main():
         sync_server_env()
     if args.detach:
         print('Created isolated session. Attach: tmux -L '+SOCKET+' attach -t edex');return
-    os.execvp('tmux',['tmux','-L',SOCKET,'attach-session','-t','edex'])
+    os.execvp('tmux',attach_command())
 
 
 if __name__=='__main__':main()

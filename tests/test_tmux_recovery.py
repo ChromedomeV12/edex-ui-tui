@@ -20,6 +20,7 @@ import tempfile
 import termios
 import time
 import unittest
+from unittest.mock import patch
 
 ROOT=Path(__file__).resolve().parents[1]
 
@@ -49,9 +50,12 @@ class RecoveryTest(unittest.TestCase):
                      'env','PATH='+folder+os.pathsep+os.environ['PATH'],
                      sys.executable,str(ROOT/'panel.py'),'system','--fps','2')
                 tmux('set-option','-g','remain-on-exit','on')
-                client=subprocess.Popen([real_tmux,'-L',label,'attach','-t','check'],
+                sys.path.insert(0,str(ROOT))
+                import launch
+                with patch.object(launch,'SOCKET',label):argv=launch.attach_command('check')
+                client=subprocess.Popen(argv,
                                         stdin=slave,stdout=slave,stderr=slave,
-                                        env=dict(os.environ,TERM='xterm-kitty'))
+                                        env=dict(os.environ,TERM='xterm-256color'))
                 captured=bytearray();deadline=time.monotonic()+4
                 while time.monotonic()<deadline:
                     if select.select([master],[],[],.1)[0]:
@@ -61,6 +65,9 @@ class RecoveryTest(unittest.TestCase):
                 self.assertEqual(tmux('display-message','-p','-t','check','#{pane_dead}').stdout.strip(),'0')
                 self.assertIn(b'a=t',captured,'Renderer did not recover and upload its first image')
                 self.assertIn(b'a=f',captured,'Renderer did not continue producing animation frames')
+                features=tmux('list-clients','-F','#{client_termfeatures}').stdout
+                self.assertIn('RGB',features)
+                self.assertIn('usstyle',features)
                 self.assertGreaterEqual(captured.count(b'a=p'),2,'Placement was not reasserted after startup')
                 self.assertEqual(captured.count(b'a=t'),1,'Placement recovery must not reload the root texture')
             finally:

@@ -16,6 +16,8 @@ The launcher uses your current terminal, sends direct graphics through SSH and r
 
 The renderer needs direct image data, Unicode placeholder placements and root animation-frame updates. Basic image support alone does not establish compatibility. The in-place path does not apply the dedicated window's font or static dotted background. It rejects tempfile graphics because the client cannot read server paths.
 
+The attach command declares RGB and underline-color support for this graphics client. Placeholder image/placement IDs use those colors; tmux must preserve them even when a compatible mobile client advertises xterm-256color. This declaration does not change TERM or modify your normal tmux server.
+
 Direct clients use a separate per-user socket ending in -direct. An explicit EDEX_TMUX_SOCKET overrides it. Use the same entry point and selector for controls. Local desktop shells remain separate; the launcher must not attach a remote client to their tempfile session. The 8/12 FPS options reduce work for a new session; 24 remains the default. Reattaching does not change existing worker arguments.
 
 ## La Terminal on iPadOS
