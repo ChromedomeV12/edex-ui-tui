@@ -162,13 +162,15 @@
     {
       "path": "assets/keyboard-geometry.json",
       "source": "src/assets/css/keyboard.css plus en-US keymap; browser-measured at 1920x1080 with bundled OFL Rajdhani Medium, normal/Shift/Fn states",
-      "source_css_sha256": "082393a198afc958ac7b0385cfa168af8cfae0ad0a946f280c89dfb6ce18744b"
+      "source_css_sha256": "e2b13ad7e863187b2d494b4cbc88c859a522a3f68f2277c4b95aad970fb0ef0b",
+      "sha256": "4d87646bb8f40cc61dd5ad1b247d57d84609a5ee31d503b1ad68fdfe2c5203d3"
     },
     {
       "path": "assets/keyboard-arrows.json",
       "source": "src/classes/keyboard.class.js",
       "adaptation": "Four original inline SVG arrow icons retained unchanged",
-      "source_sha256": "a5a940e2f2e05dbad3e90b50171d915770d8a580c029db20aa31f7cc75013d38"
+      "source_sha256": "bdca9d42284095989311dfc7ffef8ea576f252045af8cda17ea08253922b7090",
+      "sha256": "786f27925c520da24639a5c99f9080e390ee0a19ba3b0e5c0f15b250b95f0839"
     },
     {
       "path": "border_frame.py",

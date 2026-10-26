@@ -4,7 +4,7 @@ An eDEX-UI reconstruction for Linux terminals, using Kitty graphics and tmux.
 
 ![eDEX-UI TUI running in an Omarchy VM, with system and network instruments, shell tabs, Yazi, and the optional keyboard](docs/images/omarchy-preview.png)
 
-Omarchy VM preview with the optional keyboard open.
+Current layout with the optional keyboard and clipped frame. We captured a separate Omarchy session using fixture counters and sample files.
 
 I’m a TRON fan, and I remember how exciting eDEX-UI felt when it first appeared. After spending a few months with Omarchy, I wanted to bring that interface into the terminal. I built this prototype with AI assistance and existing tools, and I’m opening it up for feedback and collaboration. I’m a student with some programming experience; I’m still learning UI design.
 
@@ -96,7 +96,7 @@ The browser keeps its own directory. It does not change shell directories. The o
 
 ## What needs work
 
-Read the [interface roadmap](docs/INTERFACE-ROADMAP.md) for the upstream dotted background, pop-out detail views, and border integration plan.
+Read the [interface roadmap](docs/INTERFACE-ROADMAP.md) for remaining popup, remote-client and visual work. The [draft alpha notes](docs/releases/v0.1.0-alpha.1.md) state the tested local workflow and its limits.
 
 On `experiment/kitty-borders`, try the application-specific dotted preset:
 

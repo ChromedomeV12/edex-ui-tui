@@ -18,5 +18,11 @@ class ProvenanceTest(unittest.TestCase):
                 actual=hashlib.sha256((ROOT/path).read_bytes()).hexdigest()
                 self.assertEqual(actual,row['sha256'])
 
+    def test_bundled_font_and_license_digests(self):
+        folder=ROOT/'assets/fonts'
+        for row in json.loads((folder/'SOURCE.json').read_text())['files']:
+            with self.subTest(path=row['path']):
+                self.assertEqual(hashlib.sha256((folder/row['path']).read_bytes()).hexdigest(),row['sha256'])
+
 
 if __name__=='__main__':unittest.main()

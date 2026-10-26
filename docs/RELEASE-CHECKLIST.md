@@ -17,6 +17,8 @@ Namcap has no remaining errors. Its warnings cover private-directory Python impo
 
 ## Remaining release work
 
+The [final alpha review](ALPHA-REVIEW.md) covers the experiment diff, package contents and current screenshots. The [draft release notes](releases/v0.1.0-alpha.1.md) define the local workflow and retain popup movement, remote graphics and untested input limitations. Review preparation is complete; merging, tagging and publication remain separate steps below.
+
 1. Review the experiment diff against main. Check session isolation, file opening, graphics cleanup and the package file list. Keep private captures, credentials, commercial fonts and local deployment records out of release artifacts.
 2. Review the public screenshots and usage text against the final candidate. Existing screenshots predate some layout changes. Replace them only with captures that omit private paths, addresses and file listings.
 3. Review the first alpha's scope. The tested path is one local Kitty client on a shared filesystem with tempfile graphics. The native process popup remains rectangular; its frame mask tracks the opening rectangle and does not establish correct occlusion while moving or resizing it.
