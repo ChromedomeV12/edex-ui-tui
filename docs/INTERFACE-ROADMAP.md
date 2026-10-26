@@ -1,5 +1,11 @@
 # Interface roadmap
 
+## Next prerelease: native cost and remote launch
+
+The first alpha is published. Prioritize the SSH entry-point fix and multipart protocol correction on fix/launch-routing, then the static-layer and dirty-rectangle work in [the native older-laptop checkpoint](NATIVE-LOW-END.md). Keep 24 FPS as default and 8/12 as opt-in lower-rate targets. Measure equal-quality savings before choosing a higher rate.
+
+The owner's La Terminal probes pass Kitty images, placeholders and root-frame animation over SSH but fail through Mosh. Read [remote-client guidance](REMOTE-CLIENTS.md). Full mobile input, reconnect and bandwidth checks remain. The native globe flash also remains open; do not count a framing change as visual verification.
+
 Research snapshot: 2026-10-25. The experiment branch now includes a grid preset, a tab-anchored clipped shell frame and a native process-details popup. Main keeps the reviewed baseline. The remaining items below describe acceptance work and later features.
 
 ## First priority: keyboard size and alignment

@@ -45,6 +45,8 @@ For a local dotted window, run `python3 app.py --cwd "$HOME"`. This entry point 
 
 For Ubuntu 24.04, experiment/ubuntu-alpha adds a local `.deb` builder and package checks. Follow [the Ubuntu alpha guide](docs/UBUNTU-ALPHA.md). We have not published a package repository or tested this package on other Ubuntu or Debian releases.
 
+The unreleased fix/launch-routing branch adds an in-place SSH entry point and lower-rate 8/12 FPS options. Read [remote-client guidance](docs/REMOTE-CLIENTS.md) before trying a mobile terminal. The published alpha's launcher still opens server-side Kitty. The [native older-laptop checkpoint](docs/NATIVE-LOW-END.md) records our next performance priorities.
+
 | Control | Action |
 | --- | --- |
 | Click a tab / Ctrl-b then 1–5 | Switch shell |

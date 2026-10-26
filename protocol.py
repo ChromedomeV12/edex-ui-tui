@@ -81,8 +81,10 @@ class Image:
         with graphics_lock(self.stream):
             for index, chunk in enumerate(chunks):
                 params = dict(m=int(index < len(chunks)-1))
-                # Keep continuation packets associated with the edited root.
-                if update and self.loaded:params.update(a='f',i=self.id,q=2,r=1,X=1)
+                # The protocol allows only m/q on continuation packets, plus
+                # a=f for animation data. Image/frame metadata belongs to the
+                # first packet; repeating it can restart a partial transfer.
+                if update and self.loaded:params.update(a='f',q=2)
                 if index == 0:
                     params.update(a='f' if update and self.loaded else 't', f=channels*8 if size else 100, i=self.id, q=2)
                     if size:params.update(s=size[0],v=size[1],o='z')

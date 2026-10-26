@@ -97,12 +97,15 @@ class PortTests(unittest.TestCase):
         self.assertNotIn(b'd=A',value)
         self.assertIn(b'd=I',value)
         chunks=value.split(b'\x1b_G')[1:]
+        continuing=False
         for chunk in chunks:
             self.assertLess(len(chunk),2200)
-            if chunk.startswith(b'm=') and b'a=f' in chunk.split(b';',1)[0]:
-                self.assertIn(b'i=1193046', chunk.split(b';',1)[0])
-                self.assertIn(b'q=2', chunk.split(b';',1)[0])
-                self.assertIn(b'r=1,X=1', chunk.split(b';',1)[0])
+            header=chunk.split(b';',1)[0].split(b'\x1b\\',1)[0]
+            fields=dict(field.split(b'=',1) for field in header.split(b','))
+            if continuing:
+                allowed={b'm',b'a',b'q'} if fields.get(b'a')==b'f' else {b'm',b'q'}
+                self.assertTrue(set(fields)<=allowed,header)
+            continuing=fields.get(b'm')==b'1'
         first=value.split(b'\x1b_G')[1:8]
         encoded=b''.join(p.split(b';',1)[1].split(b'\x1b\\')[0] for p in first)
         self.assertEqual(base64.b64decode(encoded),payload)

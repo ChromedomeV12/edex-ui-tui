@@ -20,6 +20,51 @@ spec.loader.exec_module(installer)
 
 
 class PackagingTest(unittest.TestCase):
+    def test_ssh_without_display_uses_current_terminal_and_separate_session(self):
+        with patch.dict(os.environ, {'SSH_CONNECTION': 'fixture', 'TERM': 'xterm-kitty',
+                                     'EDEX_GRAPHICS_TRANSPORT': 'tempfile', 'EDEX_GRID_BACKGROUND': '1'}, clear=True):
+            args, env = app.command(['--cwd', '/tmp/a b;$x'])
+            self.assertEqual(args[0], sys.executable)
+            self.assertNotIn('kitty', args)
+            self.assertEqual(args[-2:], ['--cwd', '/tmp/a b;$x'])
+            self.assertEqual(env['EDEX_GRAPHICS_TRANSPORT'], 'direct')
+            self.assertTrue(env['EDEX_TMUX_SOCKET'].endswith('-direct'))
+            self.assertNotIn('EDEX_GRID_BACKGROUND', env)
+            self.assertEqual(os.environ['EDEX_GRAPHICS_TRANSPORT'], 'tempfile')
+            controls, control_env = app.command(['--toggle-keyboard'])
+            self.assertEqual(controls[-1], '--toggle-keyboard')
+            self.assertEqual(control_env['EDEX_TMUX_SOCKET'], env['EDEX_TMUX_SOCKET'])
+
+    def test_inline_rejects_host_file_transfer_and_unrecognized_terminal(self):
+        with patch.dict(os.environ, {'TERM': 'xterm-kitty'}, clear=True):
+            args, env = app.command(['--in-place'])
+            self.assertNotIn('--in-place', args)
+            for transport in (['--graphics-transport', 'tempfile'], ['--graphics-transport=tempfile']):
+                with self.assertRaisesRegex(ValueError, 'direct transfer'):
+                    app.command(['--in-place', *transport])
+        with patch.dict(os.environ, {'SSH_TTY': '/dev/pts/fixture', 'TERM': 'xterm-256color'}, clear=True):
+            with self.assertRaisesRegex(ValueError, 'Graphics client not recognized'):
+                app.command([])
+            self.assertEqual(app.command(['--help'])[0][-1], '--help')
+            compatible, compatible_env = app.command(['--in-place'])
+            self.assertEqual(compatible[0], sys.executable)
+            self.assertEqual(compatible_env['TERM'], 'xterm-256color')
+            self.assertEqual(compatible_env['EDEX_GRAPHICS_TRANSPORT'], 'direct')
+
+    def test_inline_keeps_nested_tmux_guard_and_requires_a_real_pty(self):
+        with patch.dict(os.environ, {'TERM': 'xterm-kitty', 'TMUX': 'existing',
+                                     'EDEX_TMUX_SOCKET': 'edex-explicit'}, clear=True):
+            _, env = app.command(['--in-place'])
+            self.assertEqual(env['TMUX'], 'existing')
+            self.assertEqual(env['EDEX_TMUX_SOCKET'], 'edex-explicit')
+            with patch.object(sys, 'argv', ['edex-ui-tui', '--in-place']), \
+                    patch.object(sys.stdin, 'isatty', return_value=False), \
+                    patch('os.execvpe') as execute:
+                with self.assertRaises(SystemExit) as exit_status:
+                    app.main()
+                self.assertEqual(exit_status.exception.code, 2)
+                execute.assert_not_called()
+
     def test_staged_tree_contains_manifest_assets_and_loads_outside_checkout(self):
         with tempfile.TemporaryDirectory() as directory:
             dest = Path(directory)

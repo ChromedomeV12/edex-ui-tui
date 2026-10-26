@@ -96,8 +96,8 @@ def main():
     p.add_argument('--install-shell-frame',action='store_true',help='Add experimental clipped shell edges to an existing session')
     p.add_argument('--files',choices=['auto','yazi','superfile','preview'],default='auto')
     p.add_argument('--skip-intro',action='store_true',help='Skip the upstream-derived theatrical startup sequence')
-    p.add_argument('--fps',type=int,choices=(24,30,48,60),default=24,
-                   help='Animation target for a new session; higher rates need local performance testing')
+    p.add_argument('--fps',type=int,choices=(8,12,24,30,48,60),default=24,
+                   help='Animation target for a new session; 8/12 reduce work on slower machines')
     p.add_argument('--graphics-transport',choices=['direct','tempfile'],
                    default=None,
                    help='Use tempfile only when Kitty and this process share a filesystem; direct for SSH')
@@ -123,7 +123,9 @@ def main():
         from shell_edges import install
         install();return
     if os.environ.get('TMUX'):p.error('Launch from Kitty outside tmux; this uses its own tmux server')
-    if not os.environ.get('KITTY_WINDOW_ID'):p.error('Launch in Kitty; tmux graphics support must be tested there')
+    inline_graphics = os.environ.get('EDEX_IN_PLACE') == '1'
+    if not os.environ.get('KITTY_WINDOW_ID') and not inline_graphics:
+        p.error('Launch in Kitty, or use edex-ui-tui --in-place with a compatible graphics client')
     for option,var in [(args.display_font,'EDEX_DISPLAY_FONT'),(args.light_font,'EDEX_LIGHT_FONT')]:
         if option:
             from PIL import ImageFont
