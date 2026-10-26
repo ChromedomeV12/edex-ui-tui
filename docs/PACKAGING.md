@@ -1,4 +1,8 @@
-# Arch preview packaging
+# Linux alpha packaging
+
+Arch preparation lives on experiment/kitty-borders. The experiment/ubuntu-alpha branch adds a local Ubuntu binary package using the same runtime and asset staging. See [Ubuntu alpha packaging](UBUNTU-ALPHA.md) for dependencies, build commands and installed checks. Neither preparation publishes a release or an AUR package.
+
+## Arch preview
 
 The recipe in packaging/arch/PKGBUILD prepares an edex-ui-tui-git package from the experiment branch. It is a development recipe. We have not submitted it to AUR or tagged a release. It follows a moving branch; record the commit shown by makepkg when reporting a problem.
 

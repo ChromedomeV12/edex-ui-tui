@@ -1,0 +1,46 @@
+.TH EDEX-UI-TUI 1 "October 2026" "eDEX-UI TUI alpha" "User Commands"
+.SH NAME
+edex-ui-tui \- terminal workspace inspired by eDEX-UI
+.SH SYNOPSIS
+.B edex-ui-tui
+.RI [ options ]
+.SH DESCRIPTION
+Opens a dedicated Kitty window with native tmux shells, Linux instruments
+and a file browser. The on-screen keyboard starts hidden.
+Run from a graphical Linux desktop with at least 140 columns by 40 rows.
+.SH OPTIONS
+.TP
+.B \-\-help
+List launcher and session options.
+.TP
+.BI \-\-cwd " directory"
+Choose the initial working directory.
+.TP
+.B \-\-skip-intro
+Skip the startup sequence.
+.TP
+.BI \-\-files " auto|yazi|superfile|preview"
+Choose file navigation. The icon grid needs Yazi 26.9.1 or newer and librsvg.
+.TP
+.B \-\-toggle-keyboard
+Show or hide the keyboard in the existing project session.
+.TP
+.B \-\-install-shell-frame
+Enable the experimental clipped shell frame in the existing session.
+.TP
+.B \-\-stop
+Stop the project session, including its native shells. Finish shell work first.
+.SH ENVIRONMENT
+.B EDEX_TMUX_SOCKET
+selects a separate project tmux server. Use the same value for launch and controls.
+.SH LIMITS
+This alpha targets one local Kitty client with temporary-file graphics.
+Kitty and Python must share a filesystem. Existing workers retain their loaded
+code after a package upgrade; stop and relaunch after finishing shell work.
+Remote graphics, mobile input and popup movement remain validation work.
+.SH FILES
+.I /usr/share/doc/edex-ui-tui
+contains usage, provenance, licenses and validation notes.
+.SH SEE ALSO
+.BR kitty (1),
+.BR tmux (1)

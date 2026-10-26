@@ -1,5 +1,7 @@
 # First local alpha review
 
+Arch preparation is complete and remains unpublished. The separate experiment/ubuntu-alpha branch adds the first Ubuntu 24.04 binary package. Read [its build and validation record](UBUNTU-ALPHA.md) before combining artifacts in a release; the Ubuntu source commit differs from the frozen Arch archive because it adds packaging and documentation.
+
 The prepared alpha source is commit d20f6669b2dad1b315b37ab9ff2cbfbc1f8b17f3 on experiment/kitty-borders. Later preparation commits add the fixed Arch recipe and publication records. Main retains the earlier baseline. We have not tagged a release or submitted a package to AUR. Read [validation](VALIDATION.md) for the environments, measurements and limits behind this checklist.
 
 ## Completed checks

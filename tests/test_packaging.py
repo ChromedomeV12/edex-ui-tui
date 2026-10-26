@@ -51,6 +51,20 @@ class PackagingTest(unittest.TestCase):
             with self.assertRaises(ValueError):
                 installer.stage(dest / 'rejected', package_name='../outside')
 
+    def test_distribution_interpreter_does_not_change_runtime_files(self):
+        with tempfile.TemporaryDirectory() as directory:
+            dest=Path(directory)
+            installer.stage(dest/'arch')
+            installer.stage(dest/'ubuntu', interpreter='/usr/bin/python3')
+            first=(dest/'arch/usr/bin/edex-ui-tui').read_text()
+            second=(dest/'ubuntu/usr/bin/edex-ui-tui').read_text()
+            self.assertIn('exec /usr/bin/python ', first)
+            self.assertIn('exec /usr/bin/python3 ', second)
+            for relative in [p.relative_to(dest/'arch/usr/share/edex-ui-tui')
+                             for p in (dest/'arch/usr/share/edex-ui-tui').rglob('*') if p.is_file()]:
+                self.assertEqual((dest/'arch/usr/share/edex-ui-tui'/relative).read_bytes(),
+                                 (dest/'ubuntu/usr/share/edex-ui-tui'/relative).read_bytes())
+
     def test_launcher_keeps_argument_boundaries_and_scopes_environment(self):
         with patch.dict(os.environ, {'TMUX': 'outside', 'TMUX_PANE': '%1',
                                      'EDEX_TMUX_SOCKET': 'edex-example'}, clear=True):

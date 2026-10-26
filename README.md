@@ -43,6 +43,8 @@ Launch outside an existing tmux session. Allow at least 140 columns by 40 rows. 
 
 For a local dotted window, run `python3 app.py --cwd "$HOME"`. This entry point opens Kitty with the bundled grid and forwards session controls without opening another window. The [Arch preview recipe](docs/PACKAGING.md) installs the same entry point as `edex-ui-tui`; it is not an AUR release yet.
 
+For Ubuntu 24.04, experiment/ubuntu-alpha adds a local `.deb` builder and package checks. Follow [the Ubuntu alpha guide](docs/UBUNTU-ALPHA.md). We have not published a package repository or tested this package on other Ubuntu or Debian releases.
+
 | Control | Action |
 | --- | --- |
 | Click a tab / Ctrl-b then 1–5 | Switch shell |

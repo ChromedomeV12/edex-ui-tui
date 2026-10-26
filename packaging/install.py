@@ -25,9 +25,11 @@ def runtime_files():
     return files
 
 
-def stage(destdir, package_name='edex-ui-tui'):
+def stage(destdir, package_name='edex-ui-tui', interpreter='/usr/bin/python'):
     if not re.fullmatch(r'[a-z0-9][a-z0-9@._+-]*', package_name):
         raise ValueError('package name must be a single Arch package name')
+    if interpreter not in ('/usr/bin/python', '/usr/bin/python3'):
+        raise ValueError('unsupported package interpreter')
     destdir = Path(destdir)
     app = destdir / 'usr/share/edex-ui-tui'
     for source in runtime_files():
@@ -37,7 +39,7 @@ def stage(destdir, package_name='edex-ui-tui'):
         target.chmod(0o644)
     binary = destdir / 'usr/bin/edex-ui-tui'
     binary.parent.mkdir(parents=True, exist_ok=True)
-    binary.write_text('#!/bin/sh\nexec /usr/bin/python /usr/share/edex-ui-tui/app.py "$@"\n',
+    binary.write_text(f'#!/bin/sh\nexec {interpreter} /usr/share/edex-ui-tui/app.py "$@"\n',
                       encoding='utf-8', newline='\n')
     binary.chmod(0o755)
     desktop = destdir / 'usr/share/applications/edex-ui-tui.desktop'
@@ -63,5 +65,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--destdir', type=Path, required=True)
     parser.add_argument('--package-name', default='edex-ui-tui')
+    parser.add_argument('--interpreter', choices=('/usr/bin/python', '/usr/bin/python3'), default='/usr/bin/python')
     args = parser.parse_args()
-    stage(args.destdir, args.package_name)
+    stage(args.destdir, args.package_name, args.interpreter)

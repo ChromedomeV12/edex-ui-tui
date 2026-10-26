@@ -9,6 +9,7 @@
 *.js text eol=lf
 *.css text eol=lf
 *.txt text eol=lf
+*.1 text eol=lf
 PKGBUILD text eol=lf
 .SRCINFO text eol=lf
 .gitattributes text eol=lf
