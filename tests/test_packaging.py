@@ -23,7 +23,7 @@ class PackagingTest(unittest.TestCase):
     def test_staged_tree_contains_manifest_assets_and_loads_outside_checkout(self):
         with tempfile.TemporaryDirectory() as directory:
             dest = Path(directory)
-            installer.stage(dest)
+            installer.stage(dest, package_name='edex-ui-tui-git')
             runtime = dest / 'usr/share/edex-ui-tui'
             manifest = json.loads((runtime / 'UPSTREAM.json').read_text())
             for row in manifest['files'] + [r for r in manifest['derived_assets'] if 'sha256' in r]:
@@ -34,7 +34,9 @@ class PackagingTest(unittest.TestCase):
             self.assertNotIn('border_probe.py', names)
             self.assertNotIn('profile_panes.py', names)
             self.assertFalse(any(p.startswith(('tests/', 'docs/', '.git/')) or '__pycache__' in p for p in names))
-            self.assertTrue((dest / 'usr/share/licenses/edex-ui-tui/OFL.txt').is_file())
+            self.assertTrue((dest / 'usr/share/licenses/edex-ui-tui-git/OFL.txt').is_file())
+            self.assertTrue((dest / 'usr/share/licenses/edex-ui-tui-git/NOTICE.md').is_file())
+            self.assertFalse((dest / 'usr/share/licenses/edex-ui-tui').exists())
             self.assertTrue((dest / 'usr/share/applications/edex-ui-tui.desktop').is_file())
             code = ('from pathlib import Path; import app, background, render, palette; '
                     'assert Path(app.__file__).resolve().parent == Path.cwd(); '
@@ -42,8 +44,12 @@ class PackagingTest(unittest.TestCase):
                     'assert render.font(16).getbbox("eDEX"); '
                     'assert palette.FG == "#aacfd1"; '
                     'assert str(Path.cwd()/"launch.py") in app.command(["--help"])[0]')
+            if sys.platform != 'win32':
+                code += '; import importlib; [importlib.import_module(name) for name in ' + repr(installer.MODULES) + ']'
             subprocess.run([sys.executable, '-I', '-c', 'import sys;sys.path.insert(0,".");' + code],
                            cwd=runtime, check=True, capture_output=True, text=True)
+            with self.assertRaises(ValueError):
+                installer.stage(dest / 'rejected', package_name='../outside')
 
     def test_launcher_keeps_argument_boundaries_and_scopes_environment(self):
         with patch.dict(os.environ, {'TMUX': 'outside', 'TMUX_PANE': '%1',

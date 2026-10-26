@@ -1,6 +1,7 @@
 """Stage the runtime and notices under DESTDIR; never edit user configuration."""
 import argparse
 from pathlib import Path
+import re
 import shutil
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -24,7 +25,9 @@ def runtime_files():
     return files
 
 
-def stage(destdir):
+def stage(destdir, package_name='edex-ui-tui'):
+    if not re.fullmatch(r'[a-z0-9][a-z0-9@._+-]*', package_name):
+        raise ValueError('package name must be a single Arch package name')
     destdir = Path(destdir)
     app = destdir / 'usr/share/edex-ui-tui'
     for source in runtime_files():
@@ -49,7 +52,7 @@ def stage(destdir):
         target = docs / source.relative_to(ROOT)
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(source, target)
-    licenses = destdir / 'usr/share/licenses/edex-ui-tui'
+    licenses = destdir / 'usr/share/licenses' / package_name
     licenses.mkdir(parents=True, exist_ok=True)
     for name, source in [('LICENSE', ROOT / 'LICENSE'), ('NOTICE.md', ROOT / 'NOTICE.md'),
                          ('OFL.txt', ROOT / 'assets/fonts/OFL.txt')]:
@@ -59,4 +62,6 @@ def stage(destdir):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--destdir', type=Path, required=True)
-    stage(parser.parse_args().destdir)
+    parser.add_argument('--package-name', default='edex-ui-tui')
+    args = parser.parse_args()
+    stage(args.destdir, args.package_name)

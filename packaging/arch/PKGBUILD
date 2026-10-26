@@ -29,5 +29,5 @@ check() {
 
 package() {
   cd "$srcdir/edex-ui-tui"
-  python packaging/install.py --destdir "$pkgdir"
+  python packaging/install.py --destdir "$pkgdir" --package-name "$pkgname"
 }

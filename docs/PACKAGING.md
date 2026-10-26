@@ -26,7 +26,7 @@ After reviewing the contents, install the selected package with sudo pacman -U f
 | /usr/share/edex-ui-tui | Runtime modules, project configs, assets, reference data and notices |
 | /usr/share/applications/edex-ui-tui.desktop | Desktop menu entry using the system terminal icon |
 | /usr/share/doc/edex-ui-tui | Text documentation |
-| /usr/share/licenses/edex-ui-tui | GPL, third-party notices and bundled font license |
+| /usr/share/licenses/edex-ui-tui-git | GPL, third-party notices and bundled font license, under the preview package's actual name |
 
 The staging script uses a list of runtime modules and resource types. It excludes Git metadata, tests, diagnostic probes, captures and Python caches. It retains reference files because runtime palette/background generation and provenance use them. We install no fonts into the system font directory and edit no user profile, normal Kitty config, tmux config or compositor rules. The package has no install hook or service.
 
