@@ -2,6 +2,8 @@
 
 The recipe in packaging/arch/PKGBUILD prepares an edex-ui-tui-git package from the experiment branch. It is a development recipe. We have not submitted it to AUR or tagged a release. It follows a moving branch; record the commit shown by makepkg when reporting a problem.
 
+The prepared v0.1.0-alpha.1 recipe lives in packaging/arch-release, with generated .SRCINFO. It builds edex-ui-tui 0.1.0alpha1-1 from source commit d20f666 and a fixed archive checksum. Its download URL will work after the prepared source asset is published. Until then, place the matching edex-ui-tui-0.1.0-alpha.1.tar.gz beside that recipe to reproduce the build. The clean-root build used that local archive and verified its checksum before extracting it.
+
 We use the [Arch PKGBUILD format](https://man.archlinux.org/man/PKGBUILD.5.en) for dependencies, checks and staging. The VCS source uses SKIP for the archive checksum; the bundled artifact check still verifies the files listed in UPSTREAM.json. A release recipe should use a reviewed tag or commit and an archive checksum.
 
 ## Build and inspect
@@ -27,6 +29,8 @@ After reviewing the contents, install the selected package with sudo pacman -U f
 | /usr/share/applications/edex-ui-tui.desktop | Desktop menu entry using the system terminal icon |
 | /usr/share/doc/edex-ui-tui | Text documentation |
 | /usr/share/licenses/edex-ui-tui-git | GPL, third-party notices and bundled font license, under the preview package's actual name |
+
+The fixed release package uses /usr/share/licenses/edex-ui-tui for its license files. Runtime and command paths stay the same. The fixed package conflicts with edex-ui-tui-git because both own the same application files.
 
 The staging script uses a list of runtime modules and resource types. It excludes Git metadata, tests, diagnostic probes, captures and Python caches. It retains reference files because runtime palette/background generation and provenance use them. We install no fonts into the system font directory and edit no user profile, normal Kitty config, tmux config or compositor rules. The package has no install hook or service.
 

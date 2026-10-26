@@ -1,0 +1,23 @@
+pkgbase = edex-ui-tui
+	pkgdesc = Terminal workspace with eDEX-derived instruments, tmux shells and an optional keyboard
+	pkgver = 0.1.0alpha1
+	pkgrel = 1
+	url = https://github.com/ChromedomeV12/edex-ui-tui
+	arch = any
+	license = GPL-3.0-only
+	license = OFL-1.1
+	license = BSD-2-Clause
+	depends = bash
+	depends = python>=3.11
+	depends = python-pillow>=10.2
+	depends = kitty>=0.32.2
+	depends = tmux>=3.4
+	depends = ttf-dejavu
+	depends = procps-ng
+	optdepends = yazi>=26.9.1: file navigation with the custom icon grid
+	optdepends = librsvg: SVG file icons for Yazi
+	conflicts = edex-ui-tui-git
+	source = https://github.com/ChromedomeV12/edex-ui-tui/releases/download/v0.1.0-alpha.1/edex-ui-tui-0.1.0-alpha.1.tar.gz
+	sha256sums = 55648b2a4dae1221d9dc45617ba11ac17217ea5d1c522c94dca04760eb1b3287
+
+pkgname = edex-ui-tui

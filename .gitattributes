@@ -10,6 +10,7 @@
 *.css text eol=lf
 *.txt text eol=lf
 PKGBUILD text eol=lf
+.SRCINFO text eol=lf
 .gitattributes text eol=lf
 .gitignore text eol=lf
 *.png binary

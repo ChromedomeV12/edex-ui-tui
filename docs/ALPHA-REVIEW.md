@@ -28,4 +28,4 @@ We replaced the older README layout image with a cropped capture from the curren
 
 ## Publication boundary
 
-The release notes and current screenshots are ready for a local alpha. The existing -git recipe tracks the experiment branch; a fixed release recipe and source archive must identify the exact reviewed commit before a tag or public package. No merge, tag or AUR submission has occurred. Follow RELEASE-CHECKLIST.md for the publication steps.
+The release notes and current screenshots are ready for a local alpha. The fixed recipe in packaging/arch-release pins source commit d20f6669b2dad1b315b37ab9ff2cbfbc1f8b17f3 and its prepared source archive checksum. The separate -git recipe continues to track this branch. The fixed alpha passed a clean build with 24 recipe checks and installed module/asset verification. Its generated .SRCINFO matches the recipe. No merge, tag or AUR submission has occurred. Follow RELEASE-CHECKLIST.md for publication; upload the prepared source asset rather than substituting GitHub's generated archive.

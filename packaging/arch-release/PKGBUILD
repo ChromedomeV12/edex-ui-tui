@@ -1,0 +1,29 @@
+# Prepared alpha recipe; publish its source asset before submitting to AUR.
+# Maintainer: ChromedomeV12 (GitHub)
+# Source commit: d20f6669b2dad1b315b37ab9ff2cbfbc1f8b17f3
+pkgname=edex-ui-tui
+pkgver=0.1.0alpha1
+pkgrel=1
+_version=0.1.0-alpha.1
+pkgdesc='Terminal workspace with eDEX-derived instruments, tmux shells and an optional keyboard'
+arch=('any')
+url='https://github.com/ChromedomeV12/edex-ui-tui'
+license=('GPL-3.0-only' 'OFL-1.1' 'BSD-2-Clause')
+depends=('bash' 'python>=3.11' 'python-pillow>=10.2' 'kitty>=0.32.2' 'tmux>=3.4' 'ttf-dejavu' 'procps-ng')
+optdepends=('yazi>=26.9.1: file navigation with the custom icon grid'
+            'librsvg: SVG file icons for Yazi')
+conflicts=('edex-ui-tui-git')
+source=("$url/releases/download/v$_version/$pkgname-$_version.tar.gz")
+sha256sums=('55648b2a4dae1221d9dc45617ba11ac17217ea5d1c522c94dca04760eb1b3287')
+
+check() {
+  cd "$srcdir/$pkgname-$_version"
+  python tests/test_port.py
+  python tests/test_provenance.py
+  python tests/test_packaging.py
+}
+
+package() {
+  cd "$srcdir/$pkgname-$_version"
+  python packaging/install.py --destdir "$pkgdir" --package-name "$pkgname"
+}
