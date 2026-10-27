@@ -6,6 +6,7 @@ telemetry is shown as --, never replaced with decorative invented values.
 import datetime
 import io
 import math
+import os
 import time
 from functools import lru_cache
 from PIL import Image,ImageDraw
@@ -109,7 +110,7 @@ def curve_points(values,timestamps,now,box,maximum=100,pixels_per_second=20):
     return output
 
 
-def render_column(kind,width,height,data,elapsed,now=None,*,raster=False):
+def render_column(kind,width,height,data,elapsed,now=None,*,raster=False,_motion=True,_wall_clock=None):
     image=surface((width,height),BG);d=ImageDraw.Draw(image)
     unit=height/70;pad=max(6,round(unit*.9));left=pad;right=width-pad
     # The CSS scales text with the viewport. Large fixed floors collided with
@@ -137,13 +138,14 @@ def render_column(kind,width,height,data,elapsed,now=None,*,raster=False):
             detail=fit(detail,small,available)
             text(right-text_width(detail,small),y+5,detail,GRAY,small)
     def graph(values,box,maximum=100,ink=FG):
+        if not _motion:return
         stamps=data.get('sample_times',[now-len(values)+1+i for i in range(len(values))])
         points=curve_points(values,stamps,now,box,maximum)
         if len(points)>1:d.line(points,fill=ink,width=max(1,round(unit*.17)))
     info=data.get('details',{})
     if kind=='system':
         heading(3,'PANEL','SYSTEM')
-        wall_clock=datetime.datetime.now()
+        wall_clock=_wall_clock if _wall_clock is not None else datetime.datetime.now()
         clock=wall_clock.strftime('%H : %M : %S')
         clockfont=font(max(15,round(unit*4)),'light')
         text((width-text_width(clock,clockfont))/2,height*.035,clock,f=clockfont)
@@ -241,3 +243,52 @@ def render_column(kind,width,height,data,elapsed,now=None,*,raster=False):
     if raster:return image
     output=io.BytesIO();image.save(output,format='PNG',compress_level=2)
     return output.getvalue()
+
+
+def draw_system_motion(image,data,now):
+    """Draw system curves over a completed, unfaded static surface."""
+    width,height=image.size;d=ImageDraw.Draw(image)
+    unit=height/70;left=max(6,round(unit*.9));right=width-left
+    def graph(values,box,maximum=100):
+        stamps=data.get('sample_times',[now-len(values)+1+i for i in range(len(values))])
+        points=curve_points(values,stamps,now,box,maximum)
+        if len(points)>1:d.line(points,fill=FG,width=max(1,round(unit*.17)))
+    cpus=data['cpus'];divide=max(1,len(cpus)//2)
+    for group,indices in enumerate((range(divide),range(divide,len(cpus)))):
+        y0=height*.285+unit*3.4+group*height*.09;y1=y0+height*.072
+        x0=left+(right-left)*.25
+        for i in indices:
+            graph([v[i] if i<len(v) else None for v in data['history']],(x0,y0,right,y1))
+
+
+class ColumnRenderer:
+    """Cache one system surface for one worker's immutable metrics snapshot.
+
+    Metrics.sample returns a new dictionary on each sample. Keeping that object
+    alive prevents id reuse; callers must replace it when data changes. Large
+    canvases, the startup fade and the network column use the uncached path.
+    """
+    MAX_CACHE_BYTES=8*1024*1024
+
+    def __init__(self):
+        self._key=None;self._data=None;self._base=None
+
+    @property
+    def cache_bytes(self):
+        return self._base.width*self._base.height*len(self._base.getbands()) if self._base is not None else 0
+
+    def raster(self,kind,width,height,data,elapsed,now=None):
+        channels=4 if os.environ.get('EDEX_GRID_BACKGROUND')=='1' else 3
+        if kind!='system' or elapsed<4 or width*height*channels>self.MAX_CACHE_BYTES:
+            self._key=None;self._data=None;self._base=None
+            return render_column(kind,width,height,data,elapsed,now,raster=True)
+        clock=datetime.datetime.now();second=clock.replace(microsecond=0)
+        key=(kind,width,height,channels,second)
+        if key!=self._key or data is not self._data:
+            self._base=None
+            self._base=render_column(kind,width,height,data,elapsed,now,raster=True,
+                                     _motion=False,_wall_clock=clock)
+            self._key=key;self._data=data
+        image=self._base.copy()
+        draw_system_motion(image,data,time.monotonic() if now is None else now)
+        return image

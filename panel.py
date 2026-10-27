@@ -41,6 +41,7 @@ def main():
     signal.signal(signal.SIGWINCH,resize)
     stream=sys.stdout.buffer;image=Image(stream)
     metrics=Metrics();data=metrics.sample();last_sample=time.monotonic()
+    column_renderer=None
     started=last_sample;directory=Path.cwd();size=None
     attached=False;last_attach_check=0
     settings=termios.tcgetattr(sys.stdin.fileno());tty.setcbreak(sys.stdin.fileno())
@@ -125,8 +126,14 @@ def main():
             width=max(180,cols*cell[0]);height=max(140,lines*cell[1])
             render_start=time.monotonic()
             if args.kind in ('system','network-column'):
-                from columns import render_column
-                raster=render_column(args.kind,width,height,data,tick-started,raster=True)
+                if args.kind=='system':
+                    if column_renderer is None:
+                        from columns import ColumnRenderer
+                        column_renderer=ColumnRenderer()
+                    raster=column_renderer.raster(args.kind,width,height,data,tick-started)
+                else:
+                    from columns import render_column
+                    raster=render_column(args.kind,width,height,data,tick-started,raster=True)
                 png=zlib.compress(raster.tobytes(),1);frame_size=raster.size
             else:
                 png=render(args.kind,width,height,data,tick-started,directory);frame_size=None

@@ -44,6 +44,69 @@ def original_fit(value,face,available):
 
 
 class RenderOptimizationTest(unittest.TestCase):
+    def test_static_surface_cache_matches_uncached_frames_and_data_changes(self):
+        fixed=datetime.datetime(2026,1,1,12,34,56)
+        for grid in ('0','1'):
+            with patch.dict(os.environ,EDEX_GRID_BACKGROUND=grid),patch('columns.datetime.datetime') as clock:
+                clock.now.return_value=fixed
+                for kind in ('system','network-column'):
+                    for width,height in ((180,140),(220,420),(306,600),(396,640)):
+                        renderer=columns.ColumnRenderer();data=fixture()
+                        data['sample_times']=list(range(80))
+                        for elapsed in (0,1,3.4,4,4.04,4.5,5):
+                            if elapsed==5:
+                                data=dict(data,uptime=420,net_totals=[2**24,2**25])
+                                data['details']=dict(address='255.255.255.255',state='UP',
+                                    processes=[dict(pid=12345,name='example',cpu=12.3,memory=5.0)])
+                                clock.now.return_value=fixed+datetime.timedelta(seconds=1)
+                            now=81+elapsed
+                            expected=columns.render_column(kind,width,height,data,elapsed,now,raster=True)
+                            actual=renderer.raster(kind,width,height,data,elapsed,now)
+                            self.assertEqual(expected.tobytes(),actual.tobytes(),(grid,kind,width,height,elapsed))
+                            self.assertLessEqual(renderer.cache_bytes,renderer.MAX_CACHE_BYTES)
+
+    def test_static_surface_cache_is_single_entry_bounded_and_not_returned(self):
+        renderer=columns.ColumnRenderer();data=fixture()
+        fixed=datetime.datetime(2026,1,1,12,34,56)
+        with patch('columns.render_column',wraps=columns.render_column) as draw,patch('columns.datetime.datetime') as clock, \
+                patch.dict(os.environ,EDEX_GRID_BACKGROUND='0'):
+            clock.now.return_value=fixed
+            first=renderer.raster('system',220,420,data,10,20)
+            first.paste('red',(0,0,220,420))
+            second=renderer.raster('system',220,420,data,10,20)
+            self.assertEqual(draw.call_count,1)
+            self.assertNotEqual(first.tobytes(),second.tobytes())
+            renderer.raster('system',220,420,dict(data),10,20)
+            self.assertEqual(draw.call_count,2)
+            renderer.raster('system',306,600,data,10,20)
+            self.assertEqual(draw.call_count,3)
+            self.assertEqual(renderer.cache_bytes,306*600*3)
+            with patch.dict(os.environ,EDEX_GRID_BACKGROUND='1'):
+                rgba=renderer.raster('system',306,600,data,10,20)
+                self.assertEqual(rgba.mode,'RGBA')
+                self.assertEqual(renderer.cache_bytes,306*600*4)
+                self.assertEqual(draw.call_count,4)
+        with patch.object(renderer,'MAX_CACHE_BYTES',1):
+            expected=columns.render_column('system',220,420,data,10,20,raster=True)
+            actual=renderer.raster('system',220,420,data,10,20)
+            self.assertEqual(expected.tobytes(),actual.tobytes())
+            self.assertEqual(renderer.cache_bytes,0)
+        self.assertIsNone(renderer._data)
+        renderer.raster('network-column',220,420,data,10,20)
+        self.assertEqual(renderer.cache_bytes,0)
+
+    def test_clock_second_rebuilds_system_surface_without_replacing_sample(self):
+        renderer=columns.ColumnRenderer();data=fixture()
+        fixed=datetime.datetime(2026,1,1,12,34,56)
+        with patch('columns.datetime.datetime') as clock,patch('columns.render_column',wraps=columns.render_column) as draw:
+            clock.now.return_value=fixed
+            renderer.raster('system',220,420,data,10,20)
+            renderer.raster('system',220,420,data,10.04,20.04)
+            self.assertEqual(draw.call_count,1)
+            clock.now.return_value=clock.now.return_value+datetime.timedelta(seconds=1)
+            renderer.raster('system',220,420,data,10.08,20.08)
+            self.assertEqual(draw.call_count,2)
+
     def test_globe_matches_previous_renderer_across_angles_sizes_and_modes(self):
         for mode in ('RGB','RGBA'):
             for width,height in ((220,420),(360,640)):
