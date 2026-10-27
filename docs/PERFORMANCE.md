@@ -46,12 +46,11 @@ single-entry memory bounds, the oversized bypass and caller mutation of returned
 frames. The full Ubuntu runtime/Lua suite passed. Tests also passed with Pillow
 12.3.0 on Windows. Raw trials and diagnostic captures stay outside Git.
 
-A new live WSLg capture remains pending. The isolated review window failed to
-start in this session; its logs reported missing D-Bus machine identity and a
-graphics-driver initialization failure. An app-scoped X11/software fallback did
-not produce a review window. We changed no distro settings to repair that
-environment. Inspect the interface on a working graphical test setup before
-merging or claiming live visual verification of this change.
+The initial agent session could not start a WSLg review window and changed no
+distro settings to repair it. The later independent review used the working
+graphical test setup, inspected a live 130×42 window, reran the combined runtime
+suite and reproduced the matched benchmark. Read the [review record](PERFORMANCE-REVIEW.md)
+for those results and the remaining native measurement and reproducibility work.
 
 ## Compare targets
 
