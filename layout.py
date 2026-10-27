@@ -2,6 +2,9 @@
 import math
 import time
 
+MIN_COLUMNS = 120
+MIN_ROWS = 40
+
 
 def reflow(run=None):
     from launch import tmux
@@ -13,7 +16,7 @@ def reflow(run=None):
         values=run('display-message','-p','-t',shell,
                    '#{window_width},#{window_height},#{window_zoomed_flag},#{client_cell_height}').split(',')
         width,height,zoomed,cell_height=(int(value or 0) for value in values)
-        if zoomed or width<140 or height<40:return False
+        if zoomed or width<MIN_COLUMNS or height<MIN_ROWS:return False
         raw=run('list-panes','-t',shell,'-F','#{pane_id}|#{pane_width}|#{pane_height}|#{pane_title}')
         panes={parts[0]:(parts[3],int(parts[1]),int(parts[2]))
                for line in raw.splitlines() for parts in [line.split('|',3)] if len(parts)==4}

@@ -32,7 +32,7 @@ class PortTests(unittest.TestCase):
         data=fixture()
         data['details']=dict(address='255.255.255.255',state='UP',interface='enp0s31f6',
             processes=[dict(pid=1234567,name='example-long-process-name',cpu=1600.0,memory=100.0)])
-        for width,height in ((350,680),(260,500),(220,420)):
+        for width,height in ((350,680),(260,500),(220,420),(180,420)):
             records={}
             def stamp(value,face,ink):
                 art=original_stamp(value,face,ink).copy();art.info['audit_value']=value

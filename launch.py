@@ -9,6 +9,7 @@ import shlex
 import subprocess
 import sys
 import time
+from layout import MIN_COLUMNS, MIN_ROWS
 
 ROOT=Path(__file__).resolve().parent
 
@@ -141,7 +142,10 @@ def main():
     existing=subprocess.run(['tmux','-L',SOCKET,'has-session','-t','=edex'],capture_output=True).returncode==0
     if not existing:
         cols,rows=shutil.get_terminal_size((180,55))
-        if cols<140 or rows<40:p.error('Prototype layout needs at least 140 columns by 40 rows')
+        if cols<MIN_COLUMNS or rows<MIN_ROWS:
+            p.error(f'Layout needs at least {MIN_COLUMNS} columns by {MIN_ROWS} rows; '
+                    f'this terminal reports {cols} columns by {rows} rows. '
+                    'On mobile, hide the system keyboard or reduce terminal text size.')
         if not args.skip_intro and not args.detach:
             from boot import play
             play()

@@ -21,6 +21,22 @@ import workspaces
 
 
 class WorkspacesTest(unittest.TestCase):
+    def test_mobile_width_launch_and_keyboard_keep_native_shell(self):
+        binary=shutil.which('tmux');self.assertIsNotNone(binary)
+        for columns,rows in ((120,40),(130,42)):
+            socket='edex-mobile-size-'+str(os.getpid())+'-'+str(columns)
+            try:
+                with tempfile.TemporaryDirectory() as folder:
+                    full_launch(binary,socket,Path(folder),Path(folder),fps=8,columns=columns,rows=rows)
+                    shell=session_option(binary,socket,'@edex-shell')
+                    pid=pane_value(binary,socket,shell,'#{pane_pid}')
+                    self.assertEqual(pane_value(binary,socket,shell,'#{window_width}'),str(columns))
+                    result=run_cli(binary,'launch.py','--toggle-keyboard',socket=socket,lock_dir=folder)
+                    self.assertEqual(result.returncode,0,result.stderr)
+                    self.assertEqual(pane_value(binary,socket,shell,'#{pane_pid}'),pid)
+                    self.assertFalse(dead_panes(binary,socket))
+            finally:subprocess.run([binary,'-L',socket,'kill-server'],capture_output=True)
+
     def test_launcher_passes_opt_in_animation_rate_to_both_instruments(self):
         socket='edex-rate-check-'+str(os.getpid())
         binary=shutil.which('tmux');self.assertIsNotNone(binary)
@@ -142,11 +158,12 @@ def child_env(pid):
         return b''
 
 
-def full_launch(binary,socket,cwd,lock_dir,fps=24):
+def full_launch(binary,socket,cwd,lock_dir,fps=24,columns=180,rows=55):
     result=subprocess.run(
         [sys.executable,str(ROOT/'launch.py'),'--detach','--skip-intro','--files','preview',
          '--cwd',str(cwd),'--fps',str(fps)],
-        env=outside_env(EDEX_TMUX_SOCKET=socket,XDG_RUNTIME_DIR=str(lock_dir)),
+        env=outside_env(EDEX_TMUX_SOCKET=socket,XDG_RUNTIME_DIR=str(lock_dir),
+                        COLUMNS=str(columns),LINES=str(rows)),
         capture_output=True,text=True,timeout=180)
     if result.returncode!=0:
         raise AssertionError('launcher failed on '+socket+': '+(result.stderr or result.stdout))

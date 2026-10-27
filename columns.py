@@ -196,8 +196,17 @@ def render_column(kind,width,height,data,elapsed,now=None,*,raster=False):
         d.line((x0,y+unit,x0+(x1-x0)*(usedswap/swap if swap else 0),y+unit),fill=FG,width=3)
         text(x1+3,y,f'{usedswap/2**30:.1f} GiB',GRAY,small)
         y=height*.78;heading(y,'TOP PROCESSES','PID | NAME | CPU | MEM')
-        process_cells=list(row_cells(left,right,(18,44,20,18)))
-        for i,process in enumerate(info.get('processes',[])):
+        processes=info.get('processes',[])
+        weights=(18,44,20,18)
+        if width<220 and processes:
+            # At mobile widths, shorten names before numeric process values.
+            pid_width=max(text_width(str(p['pid']),small) for p in processes)+5
+            cpu_width=max(text_width(f"{p['cpu']:.1f}%" if p['cpu'] is not None else '--',small) for p in processes)+5
+            mem_width=max(text_width(f"{p['memory']:.1f}%",small) for p in processes)+5
+            name_width=max(1,right-left-pid_width-cpu_width-mem_width)
+            weights=(pid_width,name_width,cpu_width,mem_width)
+        process_cells=list(row_cells(left,right,weights))
+        for i,process in enumerate(processes):
             yy=y+unit*3+i*height*.03
             cpu=process['cpu']
             values=(process['pid'],process['name'],f'{cpu:.1f}%' if cpu is not None else '--',

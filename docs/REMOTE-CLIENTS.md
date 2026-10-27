@@ -12,7 +12,9 @@ python3 app.py --in-place --install-shell-frame
 python3 app.py --in-place --stop
 ```
 
-The launcher uses your current terminal, sends direct graphics through SSH and requires no server display or KITTY_WINDOW_ID. Recognized xterm-kitty SSH sessions select this route without --in-place. For another compatible client, request it with --in-place without changing TERM. Use an interactive PTY, outside another tmux session, with at least 140 columns by 40 rows. For a command supplied to SSH, request a PTY with ssh -t.
+The launcher uses your current terminal, sends direct graphics through SSH and requires no server display or KITTY_WINDOW_ID. Recognized xterm-kitty SSH sessions select this route without --in-place. For another compatible client, request it with --in-place without changing TERM. Use an interactive PTY, outside another tmux session, with at least 120 columns by 40 rows. For a command supplied to SSH, request a PTY with ssh -t.
+
+For the whole dashboard on an iPad, use landscape, hide the system keyboard and reduce terminal text size until stty size reports at least 40 rows and 120 columns. The owner chose this full-layout approach after a 21-row/98-column launch failed. We checked launch, resize and keyboard toggles at 120×40 and 130×42, preserved native shell PIDs, and inspected a 130×42 graphical window. Narrow process rows shorten names before numeric values. The error now includes the measured size. The published alpha retains its old 140×40 guard.
 
 The renderer needs direct image data, Unicode placeholder placements and root animation-frame updates. Basic image support alone does not establish compatibility. The in-place path does not apply the dedicated window's font or static dotted background. It rejects tempfile graphics because the client cannot read server paths.
 

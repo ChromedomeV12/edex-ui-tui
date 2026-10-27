@@ -45,7 +45,7 @@ class LayoutTest(unittest.TestCase):
         return self.run_tmux('display-message','-p','-t',pane,'#{'+field+'}')
 
     def test_shrink_grow_and_noop_preserve_processes_and_proportions(self):
-        for width,height in ((160,40),(209,49),(140,40),(240,60)):
+        for width,height in ((160,40),(209,49),(140,40),(130,42),(120,40),(240,60)):
             self.run_tmux('resize-window','-t','edex:0','-x',str(width),'-y',str(height))
             reflow(self.run_tmux)
             for pane in (self.system,self.network):
