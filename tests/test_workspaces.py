@@ -21,6 +21,27 @@ import workspaces
 
 
 class WorkspacesTest(unittest.TestCase):
+    def test_orientation_is_session_scoped_and_inherited_by_new_keyboard(self):
+        binary=shutil.which('tmux');socket='edex-orientation-'+str(os.getpid())
+        try:
+            with tempfile.TemporaryDirectory() as folder:
+                full_launch(binary,socket,Path(folder),Path(folder),fps=8,flip=True)
+                value=tmux_client(binary,socket,'show-environment','-t','edex','EDEX_GRAPHICS_FLIP_Y').stdout.strip()
+                self.assertEqual(value,'EDEX_GRAPHICS_FLIP_Y=1')
+                shell=session_option(binary,socket,'@edex-shell')
+                native=pane_value(binary,socket,shell,'#{pane_pid}')
+                with patch.dict(os.environ,EDEX_GRAPHICS_FLIP_Y='0'):
+                    result=run_cli(binary,'launch.py','--toggle-keyboard',socket=socket,lock_dir=folder)
+                self.assertEqual(result.returncode,0,result.stderr)
+                self.assertEqual(tmux_client(binary,socket,'show-environment','-t','edex','EDEX_GRAPHICS_FLIP_Y').stdout.strip(),
+                                 'EDEX_GRAPHICS_FLIP_Y=1')
+                rows=tmux_client(binary,socket,'list-panes','-F','#{pane_pid}|#{pane_title}').stdout.splitlines()
+                keyboard=next(row.split('|')[0] for row in rows if row.endswith('|Keyboard'))
+                environment=(Path('/proc')/keyboard/'environ').read_bytes()
+                self.assertTrue(b'EDEX_GRAPHICS_FLIP_Y=1\0' in environment,'Keyboard must inherit orientation without exposing its environment')
+                self.assertEqual(pane_value(binary,socket,shell,'#{pane_pid}'),native)
+        finally:subprocess.run([binary,'-L',socket,'kill-server'],capture_output=True)
+
     def test_bottom_modes_do_not_start_unrequested_file_browser(self):
         binary=shutil.which('tmux');self.assertIsNotNone(binary)
         for mode in ('files','keyboard','both','none'):
@@ -191,10 +212,11 @@ def child_env(pid):
         return b''
 
 
-def full_launch(binary,socket,cwd,lock_dir,fps=24,columns=180,rows=55,bottom=None):
+def full_launch(binary,socket,cwd,lock_dir,fps=24,columns=180,rows=55,bottom=None,flip=False):
     result=subprocess.run(
         [sys.executable,str(ROOT/'launch.py'),'--detach','--skip-intro','--files','preview',
-         '--cwd',str(cwd),'--fps',str(fps),*(['--bottom',bottom] if bottom else [])],
+         '--cwd',str(cwd),'--fps',str(fps),*(['--bottom',bottom] if bottom else []),
+         *(['--flip-images-y'] if flip else [])],
         env=outside_env(EDEX_TMUX_SOCKET=socket,XDG_RUNTIME_DIR=str(lock_dir),
                         COLUMNS=str(columns),LINES=str(rows)),
         capture_output=True,text=True,timeout=180)

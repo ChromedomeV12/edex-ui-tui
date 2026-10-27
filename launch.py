@@ -117,10 +117,14 @@ def main():
     p.add_argument('--graphics-transport',choices=['direct','tempfile'],
                    default=None,
                    help='Use tempfile only when Kitty and this process share a filesystem; direct for SSH')
+    p.add_argument('--flip-images-y',action='store_true',
+                   help='New-session workaround for clients that display Kitty images vertically inverted')
     p.add_argument('--display-font',type=Path,help='Optional local font, e.g. a licensed United Sans Medium TTF/OTF')
     p.add_argument('--light-font',type=Path,help='Optional matching local light-weight face')
     p.add_argument('--cwd',default=os.getcwd());args=p.parse_args()
     controls=(args.stop,args.toggle_keyboard,args.install_switcher,args.install_shell_frame)
+    if args.flip_images_y and any(controls):
+        p.error('--flip-images-y belongs on the new-session launch, not a session control')
     if args.graphics_transport is not None:
         os.environ['EDEX_GRAPHICS_TRANSPORT']=args.graphics_transport
     elif not any(controls):
@@ -149,12 +153,19 @@ def main():
             except OSError:p.error(f'Cannot read font: {option}; supply a supported TTF/OTF file')
             os.environ[var]=str(option.resolve())
     existing=subprocess.run(['tmux','-L',SOCKET,'has-session','-t','=edex'],capture_output=True).returncode==0
+    if existing and args.flip_images_y:
+        orientation=subprocess.run(['tmux','-L',SOCKET,'show-environment','-t','edex','EDEX_GRAPHICS_FLIP_Y'],
+                                   capture_output=True,text=True).stdout.strip()
+        if orientation!='EDEX_GRAPHICS_FLIP_Y=1':
+            p.error('This session has a different image orientation; select a separate EDEX_TMUX_SOCKET '
+                    'instead of changing running workers')
     if existing and args.bottom is not None:
         current=tmux('show-options','-qv','-t','edex','@edex-bottom-mode') or 'files'
         if args.bottom!=current:
             p.error('--bottom selects panels for a new session; use another EDEX_TMUX_SOCKET '
                     'or finish work and stop this session first')
     if not existing:
+        os.environ['EDEX_GRAPHICS_FLIP_Y']='1' if args.flip_images_y else '0'
         cols,rows=shutil.get_terminal_size((180,55))
         if cols<MIN_COLUMNS or rows<MIN_ROWS:
             p.error(f'Layout needs at least {MIN_COLUMNS} columns by {MIN_ROWS} rows; '
@@ -176,6 +187,7 @@ def main():
         token=secrets.token_hex(24)
         tmux('set-option','-p','-t',shell,'@edex-input-token',token)
         tmux('set-option','-t','edex','@edex-shell',shell)
+        tmux('set-environment','-t','edex','EDEX_GRAPHICS_FLIP_Y',os.environ['EDEX_GRAPHICS_FLIP_Y'])
         sync_server_env()
         keyboard_cmd=binding_command(shlex.join([sys.executable,str(ROOT/'launch.py'),'--toggle-keyboard']))
         tmux('bind-key','K','run-shell',keyboard_cmd)

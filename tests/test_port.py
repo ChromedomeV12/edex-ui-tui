@@ -25,6 +25,26 @@ def fixture():
 
 
 class PortTests(unittest.TestCase):
+    def test_client_orientation_correction_is_opt_in_and_lossless(self):
+        import zlib
+        from unittest.mock import patch
+        for channels in (3,4):
+            art=PILImage.new('RGB' if channels==3 else 'RGBA',(4,3))
+            art.putdata([tuple((i*29+c*47)%256 for c in range(channels)) for i in range(12)])
+            encoded=io.BytesIO();art.save(encoded,format='PNG')
+            expected=art.transpose(PILImage.Transpose.FLIP_TOP_BOTTOM).tobytes()
+            for raw in (False,True):
+                payload=zlib.compress(art.tobytes(),1) if raw else encoded.getvalue()
+                for flipped in ('0','1'):
+                    stream=io.BytesIO()
+                    with patch.dict(os.environ,EDEX_GRAPHICS_TRANSPORT='direct',EDEX_GRAPHICS_FLIP_Y=flipped):
+                        Image(stream,image_id=123,tmux=False).pixels(payload,size=art.size if raw else None,channels=channels)
+                    packets=stream.getvalue().split(b'\x1b_G')[1:]
+                    body=base64.b64decode(b''.join(packet.split(b';',1)[1].split(b'\x1b\\')[0] for packet in packets))
+                    if flipped=='0':self.assertEqual(body,payload)
+                    pixels=zlib.decompress(body) if raw else PILImage.open(io.BytesIO(body)).tobytes()
+                    self.assertEqual(pixels,expected if flipped=='1' else art.tobytes())
+
     def test_column_text_keeps_addresses_and_separates_values_on_resize(self):
         import columns
         from unittest.mock import patch

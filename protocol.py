@@ -10,6 +10,24 @@ import contextlib
 import tempfile
 
 
+def flipped_payload(payload, size, channels):
+    """Compensate for a client's inverted image origin without moving cells."""
+    import zlib
+    if size is not None:
+        width,height=size;stride=width*channels
+        pixels=zlib.decompress(payload)
+        if width<=0 or height<=0 or len(pixels)!=stride*height:
+            raise ValueError('invalid raw image dimensions for orientation correction')
+        flipped=b''.join(pixels[y*stride:(y+1)*stride] for y in range(height-1,-1,-1))
+        return zlib.compress(flipped,1)
+    import io
+    from PIL import Image as Raster
+    with Raster.open(io.BytesIO(payload)) as original:
+        flipped=original.transpose(Raster.Transpose.FLIP_TOP_BOTTOM)
+        output=io.BytesIO();flipped.save(output,format='PNG',compress_level=2)
+        return output.getvalue()
+
+
 @contextlib.contextmanager
 def graphics_lock(stream):
     # Kitty chunk assembly is terminal-global. Independent tmux pane writers
@@ -59,6 +77,8 @@ class Image:
         # Base64 chunks are bounded for tmux's passthrough parser. Updating the
         # existing root frame bounds image/frame storage instead of appending.
         if channels not in (3,4):raise ValueError('raw graphics require RGB or RGBA')
+        if os.environ.get('EDEX_GRAPHICS_FLIP_Y')=='1':
+            png=flipped_payload(png,size,channels)
         if os.environ.get('EDEX_GRAPHICS_TRANSPORT')=='tempfile':
             self.pending_files={path for path in self.pending_files if path.exists()}
             if len(self.pending_files)>=128:raise RuntimeError('Kitty local image transfer backlog exceeded 128 files')

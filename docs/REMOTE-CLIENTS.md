@@ -53,6 +53,20 @@ On 2026-10-27 the owner tested the installed iPad client against server-side pro
 
 Use plain SSH for this path. Mosh emulates and synchronizes terminal state instead of forwarding a raw stream; the launcher fix does not add Mosh graphics support. See [the Mosh protocol paper](https://mosh.org/mosh-paper-draft.pdf). Do not change TERM to disguise an unsupported transport.
 
+## La Terminal 2.0.10 issues
+
+The owner reports that tapping the custom keys opens the iPad system keyboard. The finger-toggle instructions in the legacy documentation do not match this app version. We have not verified a current client setting that prevents the popup; the server cannot dismiss an iPad input view. Keep this as an open client-compatibility issue. Do not treat mouse reporting alone as proof that native keyboard behaviour works.
+
+For clients that display images vertically inverted, the new-session --flip-images-y option reverses transmitted image rows. It covers PNG and compressed RGB/RGBA, preserving alpha, dimensions, placements and input coordinates. It remains off by default and adds decode/re-encode work on that client path. It does not alter the client's terminal text or other programs' images. Test on the affected client before claiming visual correction.
+
+Use a separate socket for this orientation instead of changing workers in an existing session:
+
+```sh
+EDEX_TMUX_SOCKET=edex-ipad-fixed edex-ui-tui-preview --bottom keyboard --flip-images-y
+```
+
+Detach the previous view before this test so only one session animates. Its native shell remains alive. New keyboard workers inherit the orientation setting. Reattaching the corrected session retains it; attempting to apply the flag to an uncorrected live session returns an explanation rather than changing unrelated workers.
+
 ## Validation
 
 The full Ubuntu runtime suite and Debian package checks passed. Tests cover argument boundaries, missing display variables, direct-transfer enforcement, session isolation, non-PTY rejection and controls. A real Omarchy SSH PTY test passed launch and keyboard creation without a display or KITTY_WINDOW_ID, and preserved the test shell PID.
