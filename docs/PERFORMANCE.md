@@ -2,6 +2,57 @@
 
 The default animation target is 24 FPS. The launcher accepts 24, 30, 48 and 60 for new sessions through `--fps`. An existing session keeps its current workers when you reattach. The target controls instrument animation; Linux counters still sample once per second, and the optional keyboard redraws for input and reveal states.
 
+## System surface cache, 2026-10-27
+
+The performance branch caches one completed system-column surface per worker.
+It redraws moving CPU curves over a copy, and rebuilds the surface when the
+metrics snapshot, wall-clock second, canvas size or RGB/RGBA mode changes.
+Startup fades use the original path. The default remains 24 FPS. Network/globe
+rendering stays on its original path: trial caching there did not produce a
+reliable CPU saving.
+
+The cache retains one image, capped at 8 MiB, plus its current metrics snapshot.
+Oversized canvases bypass and release it. At the measured sizes the retained
+image uses 0.36–0.70 MiB, in addition to the current output frame. This changes
+neither graphics IDs nor placement/transport behavior. Compressed payload bytes
+remain identical, so this change makes no bandwidth-saving claim.
+
+We compared source commit 76a3cc4 with the cached path on Ubuntu 24.04 WSL,
+Python 3.12.3 and Pillow 10.2.0. Each case used five shuffled baseline/candidate
+trials of 24 frames, the same eight-CPU synthetic data and zlib level 1.
+The system cache rebuilt twice per trial: once for the metrics snapshot and
+once for an offset wall-clock tick. We verified the pixels against the baseline
+for every measured frame. The table shows the median of trial means, including
+both rebuilds, and median trial p95 work time.
+
+| Canvas / mode | Baseline mean / p95, ms | Cached mean / p95, ms | CPU-time reduction |
+| --- | --- | --- | --- |
+| 225×560 RGB | 3.489 / 4.101 | 2.166 / 3.345 | 37.9% |
+| 225×560 RGBA | 3.890 / 4.750 | 2.367 / 3.793 | 39.2% |
+| 306×600 RGB | 3.904 / 4.736 | 2.783 / 4.217 | 28.7% |
+| 306×600 RGBA | 4.586 / 6.165 | 3.186 / 4.392 | 30.5% |
+
+These are render-and-encode CPU microbenchmarks. They exclude Kitty, tmux,
+compositor/GPU work, network transfer and display presentation. We have not
+measured a whole-app CPU, RSS, fan or thermal improvement on native hardware
+after this change. Keep the [older-laptop checkpoint](NATIVE-LOW-END.md) as the
+native baseline and repeat that workflow before making those claims.
+The existing profile_panes.py raster microbenchmark still calls the uncached
+reference renderer; this cache comparison uses a separate matched harness.
+
+Regression checks compare cached and uncached pixels across startup, clock/data
+changes, RGB/RGBA and sizes down to 180×140. They cover resize invalidation,
+single-entry memory bounds, the oversized bypass and caller mutation of returned
+frames. The full Ubuntu runtime/Lua suite passed. Tests also passed with Pillow
+12.3.0 on Windows. Raw trials and diagnostic captures stay outside Git.
+
+A new live WSLg capture remains pending. The isolated review window failed to
+start in this session; its logs reported missing D-Bus machine identity and a
+graphics-driver initialization failure. An app-scoped X11/software fallback did
+not produce a review window. We changed no distro settings to repair that
+environment. Inspect the interface on a working graphical test setup before
+merging or claiming live visual verification of this change.
+
 ## Compare targets
 
 Use the same Kitty version, font size, viewport, visible panes and graphics transport for each trial. Keep a native shell idle and leave Yazi on the same directory. Warm up after launch, then take repeated samples. Test targets in more than one order before claiming an improvement.
