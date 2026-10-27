@@ -21,6 +21,39 @@ import workspaces
 
 
 class WorkspacesTest(unittest.TestCase):
+    def test_bottom_modes_do_not_start_unrequested_file_browser(self):
+        binary=shutil.which('tmux');self.assertIsNotNone(binary)
+        for mode in ('files','keyboard','both','none'):
+            socket='edex-bottom-check-'+str(os.getpid())+'-'+mode
+            try:
+                with tempfile.TemporaryDirectory() as folder:
+                    full_launch(binary,socket,Path(folder),Path(folder),fps=8,columns=120,rows=40,bottom=mode)
+                    shell=session_option(binary,socket,'@edex-shell')
+                    native=pane_value(binary,socket,shell,'#{pane_pid}')
+                    commands=tmux_client(binary,socket,'list-panes','-a','-F','#{pane_start_command}').stdout
+                    self.assertEqual('navigator.py' in commands,mode in ('files','both'))
+                    self.assertEqual('keyboard.py' in commands,mode in ('keyboard','both'))
+                    self.assertEqual(session_option(binary,socket,'@edex-bottom-mode'),mode)
+                    changed='keyboard' if mode=='files' else 'files'
+                    rejected=run_cli(binary,'launch.py','--bottom',changed,'--detach',socket=socket,lock_dir=folder)
+                    self.assertNotEqual(rejected.returncode,0)
+                    self.assertIn('new session',rejected.stderr)
+                    self.assertEqual(pane_value(binary,socket,shell,'#{pane_pid}'),native)
+                    for expected in (('none','keyboard') if mode=='keyboard' else
+                                     ('keyboard','none') if mode=='none' else
+                                     ('files','both') if mode=='both' else ('both','files')):
+                        result=run_cli(binary,'launch.py','--toggle-keyboard',socket=socket,lock_dir=folder)
+                        self.assertEqual(result.returncode,0,result.stderr)
+                        self.assertEqual(session_option(binary,socket,'@edex-bottom-mode'),expected)
+                        self.assertEqual(pane_value(binary,socket,shell,'#{pane_pid}'),native)
+                        if expected in ('keyboard','both'):
+                            visible=tmux_client(binary,socket,'list-panes','-F','#{pane_title}|#{pane_width}|#{pane_height}').stdout.splitlines()
+                            keyboard=next(row.split('|') for row in visible if row.startswith('Keyboard|'))
+                            self.assertEqual(int(keyboard[1]),120 if expected=='keyboard' else int(120*.62))
+                            self.assertEqual(int(keyboard[2]),int(40*.36))
+                    self.assertFalse(dead_panes(binary,socket))
+            finally:subprocess.run([binary,'-L',socket,'kill-server'],capture_output=True)
+
     def test_mobile_width_launch_and_keyboard_keep_native_shell(self):
         binary=shutil.which('tmux');self.assertIsNotNone(binary)
         for columns,rows in ((120,40),(130,42)):
@@ -158,10 +191,10 @@ def child_env(pid):
         return b''
 
 
-def full_launch(binary,socket,cwd,lock_dir,fps=24,columns=180,rows=55):
+def full_launch(binary,socket,cwd,lock_dir,fps=24,columns=180,rows=55,bottom=None):
     result=subprocess.run(
         [sys.executable,str(ROOT/'launch.py'),'--detach','--skip-intro','--files','preview',
-         '--cwd',str(cwd),'--fps',str(fps)],
+         '--cwd',str(cwd),'--fps',str(fps),*(['--bottom',bottom] if bottom else [])],
         env=outside_env(EDEX_TMUX_SOCKET=socket,XDG_RUNTIME_DIR=str(lock_dir),
                         COLUMNS=str(columns),LINES=str(rows)),
         capture_output=True,text=True,timeout=180)

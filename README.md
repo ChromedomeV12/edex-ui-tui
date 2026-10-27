@@ -47,6 +47,8 @@ For Ubuntu 24.04, experiment/ubuntu-alpha adds a local `.deb` builder and packag
 
 The unreleased fix/launch-routing branch adds an in-place SSH entry point and lower-rate 8/12 FPS options. Read [remote-client guidance](docs/REMOTE-CLIENTS.md) before trying a mobile terminal. The published alpha's launcher still opens server-side Kitty. The [native older-laptop checkpoint](docs/NATIVE-LOW-END.md) records our next performance priorities.
 
+That branch also adds --bottom files|keyboard|both|none for a new session. Keyboard-only uses the full bottom width and starts no file browser. Its tested minimum is 120 columns by 40 rows; reduce terminal text size and hide the iPad system keyboard to show the whole dashboard.
+
 | Control | Action |
 | --- | --- |
 | Click a tab / Ctrl-b then 1–5 | Switch shell |

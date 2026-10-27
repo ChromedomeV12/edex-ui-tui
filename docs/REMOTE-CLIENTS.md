@@ -22,6 +22,29 @@ The attach command declares RGB and underline-color support for this graphics cl
 
 Direct clients use a separate per-user socket ending in -direct. An explicit EDEX_TMUX_SOCKET overrides it. Use the same entry point and selector for controls. Local desktop shells remain separate; the launcher must not attach a remote client to their tempfile session. The 8/12 FPS options reduce work for a new session; 24 remains the default. Reattaching does not change existing worker arguments.
 
+## Bottom-panel choices
+
+Choose panels when creating a new session with --bottom:
+
+| Value | Bottom area | File browser starts? |
+| --- | --- | --- |
+| files | Files, keyboard hidden (default) | Yes |
+| keyboard | Full-width keyboard | No |
+| both | Files beside the keyboard | Yes |
+| none | No bottom panels | No |
+
+For the removable user preview:
+
+```sh
+edex-ui-tui-preview --bottom keyboard
+```
+
+From a source checkout, use python3 app.py --in-place --bottom keyboard. The --files option selects the browser program only when files are visible. A fresh keyboard-only or no-bottom session does not start navigator.py or Yazi.
+
+Ctrl-b then Shift-K, or --toggle-keyboard, switches files↔both and keyboard↔none. Hiding a keyboard preserves its process and the native shell. The keyboard fills the bottom width when no file pane exists. Changing the startup selection of an existing session returns an explanation instead of closing a browser or shell. Finish work and stop that session before choosing a different startup mode, or use a separate EDEX_TMUX_SOCKET.
+
+We tested all four modes at 120×40, toggled each twice and checked shell PIDs and pane health. Resize tests cover keyboard-only and no-bottom layouts. A 130×42 graphical review confirmed the full-width keyboard with no browser pane.
+
 ## La Terminal on iPadOS
 
 La Terminal uses SwiftTerm, whose current upstream documents PNG/raw Kitty images, Unicode placeholders and animation frames. The shipped app version and connection transport determine what reaches its renderer. See [La Terminal](https://la-terminal.net/), [its release history](https://apps.apple.com/app/id1629902861) and [SwiftTerm's graphics documentation](https://github.com/migueldeicaza/SwiftTerm/blob/main/Sources/SwiftTerm/Documentation.docc/KittyGraphicsProtocol.md).

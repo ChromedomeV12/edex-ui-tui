@@ -67,7 +67,7 @@ def _toggle_keyboard():
     session='edex'
     sync_server_env()
     shell=tmux('show-options','-v','-t',session,'@edex-shell')
-    files=tmux('show-options','-v','-t',session,'@edex-files')
+    files=tmux('show-options','-qv','-t',session,'@edex-files')
     token=tmux('show-options','-p','-v','-t',shell,'@edex-input-token')
     tabs=tmux('show-options','-qv','-t',session,'@edex-tabs')
     tab_height=tmux('display-message','-p','-t',tabs,'#{pane_height}') if tabs else None
@@ -76,8 +76,10 @@ def _toggle_keyboard():
                    if line.split()[1:2]==['Keyboard']),None)
     if keyboard and keyboard[2]!='_keyboard':
         tmux('break-pane','-d','-s',keyboard[0],'-n','_keyboard')
-        height=int(tmux('display-message','-p','-t',files,'#{window_height}'))
-        tmux('resize-pane','-t',files,'-y',str(max(1,int(height*.30))))
+        if files:
+            height=int(tmux('display-message','-p','-t',files,'#{window_height}'))
+            tmux('resize-pane','-t',files,'-y',str(max(1,int(height*.30))))
+        tmux('set-option','-t',session,'@edex-bottom-mode','files' if files else 'none')
         tmux('select-pane','-t',shell)
     else:
         if keyboard:pane=keyboard[0]
@@ -85,9 +87,14 @@ def _toggle_keyboard():
             pane=tmux('new-window','-d','-t',session,'-n','_keyboard','-P','-F','#{pane_id}',
                       sys.executable,str(ROOT/'keyboard.py'),'--shell-pane',shell,'--token',token)
             tmux('select-pane','-t',pane,'-T','Keyboard')
-        height=int(tmux('display-message','-p','-t',files,'#{window_height}'))
-        tmux('resize-pane','-t',files,'-y',str(max(1,int(height*.36))))
-        tmux('join-pane','-d','-s',pane,'-t',files,'-h','-l','62%')
+        if files:
+            height=int(tmux('display-message','-p','-t',files,'#{window_height}'))
+            tmux('resize-pane','-t',files,'-y',str(max(1,int(height*.36))))
+            tmux('join-pane','-d','-s',pane,'-t',files,'-h','-l','62%')
+        else:
+            height=int(tmux('display-message','-p','-t',shell,'#{window_height}'))
+            tmux('join-pane','-d','-f','-v','-s',pane,'-t',shell,'-l',str(max(1,int(height*.36))))
+        tmux('set-option','-t',session,'@edex-bottom-mode','both' if files else 'keyboard')
         tmux('select-pane','-t',shell)
     # tmux can take rows from the tab strip when resizing the full-width bottom.
     if tabs:tmux('resize-pane','-t',tabs,'-y',tab_height)
@@ -102,6 +109,8 @@ def main():
     p.add_argument('--install-switcher',action='store_true',help='Add the shell tab strip to the existing demo')
     p.add_argument('--install-shell-frame',action='store_true',help='Add experimental clipped shell edges to an existing session')
     p.add_argument('--files',choices=['auto','yazi','superfile','preview'],default='auto')
+    p.add_argument('--bottom',choices=['files','keyboard','both','none'],default=None,
+                   help='Bottom panels for a new session (default: files); keyboard/none do not start a file browser')
     p.add_argument('--skip-intro',action='store_true',help='Skip the upstream-derived theatrical startup sequence')
     p.add_argument('--fps',type=int,choices=(8,12,24,30,48,60),default=24,
                    help='Animation target for a new session; 8/12 reduce work on slower machines')
@@ -140,6 +149,11 @@ def main():
             except OSError:p.error(f'Cannot read font: {option}; supply a supported TTF/OTF file')
             os.environ[var]=str(option.resolve())
     existing=subprocess.run(['tmux','-L',SOCKET,'has-session','-t','=edex'],capture_output=True).returncode==0
+    if existing and args.bottom is not None:
+        current=tmux('show-options','-qv','-t','edex','@edex-bottom-mode') or 'files'
+        if args.bottom!=current:
+            p.error('--bottom selects panels for a new session; use another EDEX_TMUX_SOCKET '
+                    'or finish work and stop this session first')
     if not existing:
         cols,rows=shutil.get_terminal_size((180,55))
         if cols<MIN_COLUMNS or rows<MIN_ROWS:
@@ -173,18 +187,28 @@ def main():
         try:
             # Upstream main_shell 65vw, side columns 17vw. Bottom row spans
             # the full window; an optional keyboard shares it with files.
-            files=tmux('split-window','-d','-f','-v','-t',shell,'-l','30%',
-                       '-c',str(Path(args.cwd).resolve()),'-P','-F','#{pane_id}',
-                       sys.executable,str(ROOT/'navigator.py'),'--program',args.files,
-                       '--shell-pane',shell)
-            tmux('select-pane','-t',files,'-T','Files')
-            tmux('set-option','-t','edex','@edex-files',files)
+            bottom=args.bottom or 'files'
+            tmux('set-option','-t','edex','@edex-bottom-mode',bottom)
+            tmux('set-option','-t','edex','@edex-files','')
+            if bottom in ('files','both'):
+                files=tmux('split-window','-d','-f','-v','-t',shell,'-l','30%',
+                           '-c',str(Path(args.cwd).resolve()),'-P','-F','#{pane_id}',
+                           sys.executable,str(ROOT/'navigator.py'),'--program',args.files,
+                           '--shell-pane',shell)
+                tmux('select-pane','-t',files,'-T','Files')
+                tmux('set-option','-t','edex','@edex-files',files)
+            elif bottom=='keyboard':
+                keyboard=tmux('split-window','-d','-f','-v','-t',shell,'-l','36%',
+                              '-P','-F','#{pane_id}',sys.executable,str(ROOT/'keyboard.py'),
+                              '--shell-pane',shell,'--token',token)
+                tmux('select-pane','-t',keyboard,'-T','Keyboard')
             instrument('system',shell,'-h','17%',True)
             instrument('network-column',shell,'-h','20%')
             from workspaces import install
             install()
             from popups import install as install_popups
             install_popups()
+            if bottom=='both':toggle_keyboard()
             tmux('select-pane','-t',shell)
         except Exception:
             tmux('kill-session','-t','edex');raise

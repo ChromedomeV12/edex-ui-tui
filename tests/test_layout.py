@@ -71,5 +71,15 @@ class LayoutTest(unittest.TestCase):
         self.assertEqual(self.value(self.shell,'window_zoomed_flag'),'1')
         self.assertEqual(self.value(self.shell,'pane_pid'),self.pids[self.shell])
 
+    def test_keyboard_only_and_no_bottom_keep_shell_and_optional_panes(self):
+        self.run_tmux('break-pane','-d','-s',self.files,'-n','_files')
+        reflow(self.run_tmux)
+        self.assertEqual(self.value(self.keyboard,'pane_width'),'209')
+        self.assertEqual(self.value(self.keyboard,'pane_height'),'17')
+        self.run_tmux('break-pane','-d','-s',self.keyboard,'-n','_keyboard')
+        reflow(self.run_tmux)
+        self.assertEqual(self.value(self.tabs,'pane_height'),'2')
+        for pane,pid in self.pids.items():self.assertEqual(self.value(pane,'pane_pid'),pid)
+
 
 if __name__=='__main__':unittest.main()

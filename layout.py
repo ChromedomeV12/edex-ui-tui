@@ -25,7 +25,8 @@ def reflow(run=None):
         system=next((pane for pane,(title,_,_) in panes.items() if title=='System'),None)
         network=next((pane for pane,(title,_,_) in panes.items() if title=='Network-column'),None)
         keyboard=next((pane for pane,(title,_,_) in panes.items() if title=='Keyboard'),None)
-        if not system or not network or files not in panes or tabs not in panes:return False
+        if not system or not network or tabs not in panes:return False
+        files=files if files in panes else None
         changed=False
         def resize(pane,axis,size):
             nonlocal changed
@@ -35,10 +36,11 @@ def reflow(run=None):
             current=int(run('display-message','-p','-t',pane,'#{'+field+'}'))
             if current!=size:
                 run('resize-pane','-t',pane,'-'+axis,str(size));changed=True
-        resize(files,'y',int(height*(.36 if keyboard else .30)))
+        bottom=files or keyboard
+        if bottom:resize(bottom,'y',int(height*(.36 if keyboard else .30)))
         side=max(1,int(width*.17))
         resize(system,'x',side);resize(network,'x',side)
-        if keyboard:resize(keyboard,'x',int(width*.62))
+        if keyboard and files:resize(keyboard,'x',int(width*.62))
         cell_height=cell_height or 20
         tab_rows=max(2,math.ceil((19+height*cell_height*.011)/cell_height))
         resize(tabs,'y',tab_rows)
