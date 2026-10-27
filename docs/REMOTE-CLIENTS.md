@@ -59,6 +59,8 @@ The owner reports that tapping the custom keys opens the iPad system keyboard. T
 
 For clients that display images vertically inverted, the new-session --flip-images-y option reverses transmitted image rows. It covers PNG and compressed RGB/RGBA, preserving alpha, dimensions, placements and input coordinates. It remains off by default and adds decode/re-encode work on that client path. It does not alter the client's terminal text or other programs' images. Test on the affected client before claiming visual correction.
 
+The owner confirmed on 2026-10-27 that all preview images are upright on La Terminal 2.0.10 after enabling this correction. The native keyboard popup remains open and deferred; no keyboard-input behaviour changed in this fix.
+
 Use a separate socket for this orientation instead of changing workers in an existing session:
 
 ```sh
